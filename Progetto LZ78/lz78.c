@@ -21,8 +21,8 @@ int main(int argc, char* argv[]){
 /*--------------Variables---------------*/
 	char opt;
 	const char* opt_string = "cdi:o:s:v";
-	char* input_file;
-	char* output_file;
+	char* input_file = NULL;
+	char* output_file = NULL;
 	int dict_size = 0;
 	
 /*--------------Options Handle----------*/
@@ -63,5 +63,28 @@ int main(int argc, char* argv[]){
 	printf("Input file: %s\n", input_file);
 	printf("Output file: %s\n", output_file);
 	printf("Dictionary size: %i\n", dict_size);
+	
+	/*_____________________________TESTING HASH TABLE____________________________*/
+	
+	hashtable_t* hashtable;
+	hashtable = create_hash_table(100);
+	if(hashtable == NULL){
+		printf("ERROR IN HASH TABLE GENERATION\n");
+		return 0;
+	}
+	int hashval = 0;
+	hashval = (int)key_generation(hashtable, 4, 'c');
+	printf("Hash value is = %i\n", hashval);
+	hashval = (int)key_generation(hashtable, 2, 'a');
+	printf("Hash value is = %i\n", hashval);
+	hashval = (int)key_generation(hashtable, 0, 'z');
+	printf("Hash value is = %i\n", hashval);
+	hashval = (int)key_generation(hashtable, 15, 'h');
+	printf("Hash value is = %i\n", hashval);
+	hashval = (int)key_generation(hashtable, 4, 'c');
+	printf("Hash value is = %i\n", hashval);
+	hashval = (int)key_generation(hashtable, 3, 's');
+	printf("Hash value is = %i\n", hashval);
+	
 	return 0;
 }
