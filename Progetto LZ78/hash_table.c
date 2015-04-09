@@ -8,7 +8,7 @@ typedef uint32_t hashint;
 //Single entry of the hash table
 struct entry_s{
 	int father_id;				//Father node identifier
-	char value;				//The associated character to the node 
+	char value;					//The associated character to the node 
 	int node_id;				//Node identifier
 	//PUNTATORE AL PADRE?
 };
@@ -16,9 +16,9 @@ struct entry_s{
 
 //Hash table structure
 struct hashtable_s{
-	int size;				//Real dimention of hash table
+	int size;					//Real dimention of hash table
 	int num_records;			//Number of present records in the table
-	hashint hash_start_value;		//It will contain the Benrstein's magic number 5381 mixed with a random number
+	hashint hash_start_value;	//It will contain the Benrstein's magic number 5381 mixed with a random number
 	entry_t **table;			//It will be an array of pointers to entry_t elements, the reason to keep memory to the minimum required
 };
 
