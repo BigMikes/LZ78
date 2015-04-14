@@ -124,7 +124,7 @@ int main(int argc, char* argv[]){
 	printf("Dictionary size: %i\n", param.dict_size);
 	
 	/*_____________________________TESTING HASH TABLE____________________________*/
-	/*
+	
 	hashtable_t* hashtable;
 	hashtable = create_hash_table(100);
 	if(hashtable == NULL){
@@ -170,6 +170,6 @@ int main(int argc, char* argv[]){
 		printf("The node was found, node id = %i\n", node_id); 	
 	else
 		printf("The node wasn't found, node id = %i\n", node_id);
-	*/
+	
 	return 0;
 }
