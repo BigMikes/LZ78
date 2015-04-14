@@ -17,4 +17,5 @@ typedef struct hashtable_s hashtable_t;
 /*-------------Functions-------------*/
 
 hashtable_t* create_hash_table(int size);
-uint32_t key_generation(hashtable_t* ht, int node_id, char symbol);
+uint32_t search(hashtable_t* ht, char symbol, uint32_t father_id, int* find);
+uint32_t insert(hashtable_t* ht, char symbol, uint32_t father_id);

@@ -72,19 +72,45 @@ int main(int argc, char* argv[]){
 		printf("ERROR IN HASH TABLE GENERATION\n");
 		return 0;
 	}
-	int hashval = 0;
-	hashval = (int)key_generation(hashtable, 4, 'c');
-	printf("Hash value is = %i\n", hashval);
-	hashval = (int)key_generation(hashtable, 2, 'a');
-	printf("Hash value is = %i\n", hashval);
-	hashval = (int)key_generation(hashtable, 0, 'z');
-	printf("Hash value is = %i\n", hashval);
-	hashval = (int)key_generation(hashtable, 15, 'h');
-	printf("Hash value is = %i\n", hashval);
-	hashval = (int)key_generation(hashtable, 4, 'c');
-	printf("Hash value is = %i\n", hashval);
-	hashval = (int)key_generation(hashtable, 3, 's');
-	printf("Hash value is = %i\n", hashval);
+	int node_id = -1;
+	int find;
+	insert(hashtable, 'a', 0);
+	insert(hashtable, 'b', 0);
+	insert(hashtable, 'c', 0);
+	insert(hashtable, 'd', 0);
+	
+	node_id = (int)search(hashtable, 'a', 0, &find);
+	if(find == 1)
+		printf("The node was found, node id = %i\n", node_id); 	
+	else
+		printf("The node wasn't found, node id = %i\n", node_id); 
+	
+	node_id = (int)search(hashtable, 'c', 0, &find);
+	if(find == 1)
+		printf("The node was found, node id = %i\n", node_id); 	
+	else
+		printf("The node wasn't found, node id = %i\n", node_id);
+		
+	node_id = insert(hashtable, 'a', node_id);
+	node_id = insert(hashtable, 's', node_id);
+	
+	node_id = (int)search(hashtable, 'c', 0, &find);
+	if(find == 1)
+		printf("The node was found, node id = %i\n", node_id); 	
+	else
+		printf("The node wasn't found, node id = %i\n", node_id); 
+	
+	node_id = (int)search(hashtable, 'a', node_id, &find);
+	if(find == 1)
+		printf("The node was found, node id = %i\n", node_id); 	
+	else
+		printf("The node wasn't found, node id = %i\n", node_id);
+	
+	node_id = (int)search(hashtable, 'x', node_id, &find);
+	if(find == 1)
+		printf("The node was found, node id = %i\n", node_id); 	
+	else
+		printf("The node wasn't found, node id = %i\n", node_id);
 	
 	return 0;
 }
