@@ -35,4 +35,5 @@ leggo la prossima codifica
 ricavo fin dove è possibile la stringa
 	il primo carattere è lo stesso che mancava alla precedente
 	
+	
 aggiungo alla hash table (char_mancante, C, last_node++)
