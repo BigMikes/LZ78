@@ -6,7 +6,7 @@ bitio.o: bitio.h bitio.c
 hash_table.o: hash_table.c hash_table.h
 	cc -c -O2 -Wall -Werror hash_table.c
 
-lz78_decompress.o: lz78_decompress.c bitio.h lz78.h hash_table.h
+lz78_decompress.o: lz78_decompress.c bitio.h lz78.h
 	cc -c -O2 -Wall -Werror lz78_decompress.c
 	
 lz78_compress.o: lz78_compress.c bitio.h lz78.h hash_table.h
