@@ -34,7 +34,7 @@ void help(){
 		-o \"<filename>\"........: output file name\n\
 		-v ....................: verbose\n\
 		-s \"<size>\"............: dictionary size \n\
-		-h ....................: this helper";
+		-h ....................: this helper\n";
         
 	printf("%s", options_msg);		
 }
@@ -49,6 +49,8 @@ int main(int argc, char* argv[]){
 
 /*--------------Inizilize default parameters struct-------------------*/
 	param.mode = 0;
+	param.input_file = NULL;
+	param.output_file = NULL;
 	param.verbose = 0;
 	param.dict_size = 0;
 	param.i_set = 0;
@@ -125,19 +127,19 @@ int main(int argc, char* argv[]){
 	
 	//controllo del modo di funzionamento
 	if(param.mode==0){
-		printf("Must be selected one functioning mode");
+		printf("Must be selected one functioning mode\n");
 		return 0;
 	}
 	
 	//se in modo decompressore s viene semplicemente ignorato
 /*--------------------------------------------------------------------*/	
 	
-	printf("Input file: %s\n", param.input_file);
-	printf("Output file: %s\n", param.output_file);
-	printf("Dictionary size: %i\n", param.dict_size);
+	printv(param.verbose, "Input file: %s\n", param.input_file);
+	printv(param.verbose, "Output file: %s\n", param.output_file);
+	printv(param.verbose, "Dictionary size: %i\n", param.dict_size);
 	
 	/*_____________________________TESTING HASH TABLE____________________________*/
-	/*
+	
 	hashtable_t* hashtable;
 	hashtable = create_hash_table(100);
 	if(hashtable == NULL){
@@ -183,6 +185,6 @@ int main(int argc, char* argv[]){
 		printf("The node was found, node id = %i\n", node_id); 	
 	else
 		printf("The node wasn't found, node id = %i\n", node_id);
-	*/
+	
 	return 0;
 }
