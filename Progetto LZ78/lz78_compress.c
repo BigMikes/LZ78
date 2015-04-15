@@ -11,11 +11,9 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	FILE* input;
 	struct bitio* output;
 	hashtable_t* hashtable;
-	int i;
-	char ascii;
 	/*------------controlli---------------------------------------------------*/
 	
-	input = fopen(input_file, O_RDONLY);
+	input = fopen(input_file, "r");
 	if(input<0){
 		printf("Impossible to open input file. You are sure taht exists?\n");
 		return -1;
@@ -32,7 +30,7 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	}
 
 	/*------------programma---------------------------------------------------*/
-	int readed_byte;
+	int readed_byte = 0;
 	int node_id, find;
 	int father_id = 0;
 	int start = 1;
@@ -53,6 +51,7 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 				//emetti codifica
 				//la nuova ricerca deve partire dal carattere che ha fatto fallire readed_byte
 				emit_encode(get_num_records(hashtable), output, father_id);
+				insert(hashtable, (char)readed_byte, father_id);
 				father_id = 0;
 				start = 0;
 				break;
@@ -69,10 +68,11 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 		}
 	} while(1);
 	
+	
 	/*---------format file----------------------------------------------------*/
 	
 	/*---------closing--------------------------------------------------------*/
-	close(input);
+	fclose(input);
 	bitio_close(output);
 	return 1;
 }
