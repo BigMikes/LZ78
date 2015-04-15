@@ -60,6 +60,10 @@ int main(int argc, char* argv[]){
 	param.s_set = 0;
 
 /*--------------Options Handle----------------------------------------*/
+	if(argc==1){
+		help();
+		return 0;
+	}
 	while((opt = getopt(argc, argv, "cdi:o:s:vh")) != -1){
 		switch(opt){
 			// Option '-c' for compressor mode
@@ -107,13 +111,13 @@ int main(int argc, char* argv[]){
 /*-------------gestione errori----------------------------------------*/
 	//file di input necessario
 	//il file è sempre accompagnato dall'estensione per cui è sempre di almeno 5 caratteri
-	if(!param.i_set || strlen(param.input_file)==2){	
+	if(!param.i_set){	
 		printf("needed input file\n");
 		return 0;
 	}
 	
 	//se il file di output non viene fornito di default è output.txt
-	if(!param.o_set || strlen(param.output_file)==2){
+	if(!param.o_set){
 		param.output_file = (char*)malloc(sizeof("output.txt")+1);
 		param.output_file = "output.txt";
 	}
@@ -157,9 +161,9 @@ int main(int argc, char* argv[]){
 	
 /*---------functioning--------------------------------------------------------*/
 	if(param.mode==1)
-		ret = compressor(char* input_file, char* output_file, int dictionary_size, int verbose_mode);
+		ret = compressor(param.input_file, param.output_file, param.dict_size, param.verbose);
 	else
-		ret = decompressor(char* input_file, char* output_file, int verbose_mode);
+		ret = -1;//decompressor(param.input_file, param.output_file, param.verbose);
 	
 	if(ret<0){
 		printf("some error\n");
