@@ -29,6 +29,25 @@ uint32_t hash(hashtable_t* ht, unsigned char* c, int dim){
 }
 
 
+/*
+* Function that fills the first layer of the tree with all 255 ASCII characters
+* return -1 if error occurs, 1 otherwise
+*/
+int fill_first_layer(hashtable_t* ht){
+	char ascii;
+	int i;
+	int ret;
+	for(i = 0; i <= 255; i++){
+		ascii = (char)i;
+		ret = insert(ht, ascii, 0);
+		if(ret == 0){  			//Error in insert function
+			return -1;
+		}
+	} 
+	return 1;
+}
+
+
 //Create the hash table with a given size
 hashtable_t* create_hash_table(int size){
 	hashtable_t *ret = NULL;
@@ -58,14 +77,30 @@ hashtable_t* create_hash_table(int size){
 	seed = rand();
 	ret->hash_start_value = hash(ret, (unsigned char*) &seed, sizeof(seed));
 	
+	//Fill the first layer of the tree
+	fill_first_layer(ret);
+	
 	return ret;
 	
 }
 
 
-//Cleans the hash table
-void clean_up(hashtable_t* ht){
+//Cleans the hash table and re-fill the first layer of the tree
+void restart_ht(hashtable_t* ht){
+	entry_t* node;
+	int i;
 	
+	if(ht == NULL)
+		return;
+	
+	ht->num_records = 0;
+	for(i = 0; i < ht->size; i++){
+		node = ht->table[i];
+		free(node);
+		ht->table[i] = NULL;
+	}
+	
+	fill_first_layer(ht);
 }
 
 
@@ -125,7 +160,7 @@ uint32_t search(hashtable_t* ht, char symbol, uint32_t father_id, int* find){
 			hash_val += 1;
 			hash_val = hash_val % ht->size;
 			node = ht->table[hash_val];	
-			if((node->father_id == father_id) && (node->symbol == symbol)){
+			if((node != NULL) && (node->father_id == father_id) && (node->symbol == symbol)){
 				*find = 1;
 				return node->node_id;
 			}	
@@ -144,20 +179,17 @@ uint32_t search(hashtable_t* ht, char symbol, uint32_t father_id, int* find){
 uint32_t insert(hashtable_t* ht, char symbol, uint32_t father_id){
 	entry_t* node;
 	uint32_t hash_val;
+	uint32_t ret_value; 
 	
 	if(ht == NULL){
 		return 0;
-	}
-	
-	//if the hash table is full, then call the clean_up function
-	if(ht->num_records == ht->size){
-		clean_up(ht);
 	}
 		
 	node = malloc(sizeof(entry_t));
 	node->father_id = father_id;
 	node->symbol = symbol;
 	node->node_id = ++ht->num_records;			//Increment the number of entry and use it as new node id
+	ret_value = node->node_id;
 		
 	hash_val = key_generation(ht, father_id, symbol);
 	
@@ -168,8 +200,51 @@ uint32_t insert(hashtable_t* ht, char symbol, uint32_t father_id){
 	}
 	ht->table[hash_val] = node;
 	
-	return node->node_id;
+	if(ht->num_records == ht->size)
+		restart_ht(ht);
+	
+	return ret_value;
 }
 
 
+void print_ht(hashtable_t* ht){
+	int i;
+	entry_t* entry;
+	
+	if(ht == NULL)
+		return;
+	for(i = 0; i < ht->size; i++){
+		entry = ht->table[i];
+		if(entry != NULL)
+			printf("Entry # = %i | Node id = %i | Symbol = %c | Father id = %i |\n", i, (int)entry->node_id, entry->symbol, (int)entry->father_id);
+		else
+			printf("Entry # = %i | Empty\n", i);
+	}	
+	return;
+}
 
+/*
+* Delete hash table entirely and its data structures
+*/
+void free_ht(hashtable_t* ht){
+	entry_t* node;
+	int i;
+	
+	if(ht == NULL)
+		return;
+	
+	for(i = 0; i < ht->size; i++){
+		node = ht->table[i];
+		free(node);
+	}
+	free(ht);
+	
+}
+
+//Returns the number of entry in the table
+int get_num_records(hashtable_t* ht){
+	if(ht == NULL)
+		return -1;
+	
+	return ht->num_records;
+}

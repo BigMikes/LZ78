@@ -2,3 +2,6 @@
 *.out
 *.o
 /lz78
+/echo
+/grep
+/testhashtable
