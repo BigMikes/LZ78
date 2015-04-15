@@ -46,6 +46,8 @@ int main(int argc, char* argv[]){
 /*--------------Variables---------------------------------------------*/
 	char opt;
 	struct parameters param;
+	int ret;
+	char response;
 
 /*--------------Inizilize default parameters struct-------------------*/
 	param.mode = 0;
@@ -132,59 +134,38 @@ int main(int argc, char* argv[]){
 	}
 	
 	//se in modo decompressore s viene semplicemente ignorato
-/*--------------------------------------------------------------------*/	
 	
-	printv(param.verbose, "Input file: %s\n", param.input_file);
-	printv(param.verbose, "Output file: %s\n", param.output_file);
-	printv(param.verbose, "Dictionary size: %i\n", param.dict_size);
+/*--------confirmation--------------------------------------------------------*/	
 	
-	/*_____________________________TESTING HASH TABLE____________________________*/
 	
-	hashtable_t* hashtable;
-	hashtable = create_hash_table(100);
-	if(hashtable == NULL){
-		printf("ERROR IN HASH TABLE GENERATION\n");
+	printf("Input file: %s\n", param.input_file);
+	printf("Output file: %s\n", param.output_file);
+	printf("Dictionary size: %i\n", param.dict_size);
+	printf("correct: y/n?\n");
+	scanf("%c", &response);
+	switch(response){
+		case 'y':
+		case 'Y':
+			printf("start encoding\n");
+			break;
+		case 'n':
+		case 'N':
+		default:
+			printf("abort\n");
+			return 0;
+	}
+	
+/*---------functioning--------------------------------------------------------*/
+	if(param.mode==1)
+		ret = compressor(char* input_file, char* output_file, int dictionary_size, int verbose_mode);
+	else
+		ret = decompressor(char* input_file, char* output_file, int verbose_mode);
+	
+	if(ret<0){
+		printf("some error\n");
 		return 0;
 	}
-	int node_id = -1;
-	int find;
-	insert(hashtable, 'a', 0);
-	insert(hashtable, 'b', 0);
-	insert(hashtable, 'c', 0);
-	insert(hashtable, 'd', 0);
-	
-	node_id = (int)search(hashtable, 'a', 0, &find);
-	if(find == 1)
-		printf("The node was found, node id = %i\n", node_id); 	
-	else
-		printf("The node wasn't found, node id = %i\n", node_id); 
-	
-	node_id = (int)search(hashtable, 'c', 0, &find);
-	if(find == 1)
-		printf("The node was found, node id = %i\n", node_id); 	
-	else
-		printf("The node wasn't found, node id = %i\n", node_id);
-		
-	node_id = insert(hashtable, 'a', node_id);
-	node_id = insert(hashtable, 's', node_id);
-	
-	node_id = (int)search(hashtable, 'c', 0, &find);
-	if(find == 1)
-		printf("The node was found, node id = %i\n", node_id); 	
-	else
-		printf("The node wasn't found, node id = %i\n", node_id); 
-	
-	node_id = (int)search(hashtable, 'a', node_id, &find);
-	if(find == 1)
-		printf("The node was found, node id = %i\n", node_id); 	
-	else
-		printf("The node wasn't found, node id = %i\n", node_id);
-	
-	node_id = (int)search(hashtable, 'x', node_id, &find);
-	if(find == 1)
-		printf("The node was found, node id = %i\n", node_id); 	
-	else
-		printf("The node wasn't found, node id = %i\n", node_id);
-	
+
+	//se cerchi il codice di test della hash table te l'ho spostato in testhashtable.c
 	return 0;
 }
