@@ -6,12 +6,24 @@ struct parameters{
 	int mode; 
 	char* input_file;
 	char* output_file;
+	//verbose is active if 1
 	int verbose;
 	int dict_size;
 	int i_set;
 	int o_set;
 	int s_set;
 };
+
+//verbose print
+void printv(int verbosity, const char *format, ...){
+    va_list args;
+    va_start(args, format);
+
+    if (verbosity){
+        vfprintf (stdout, format, args);
+	}
+	va_end(args);
+}
 
 //Display a help message
 void help(){
@@ -26,6 +38,7 @@ void help(){
         
 	printf("%s", options_msg);		
 }
+
 
 
 
@@ -124,7 +137,7 @@ int main(int argc, char* argv[]){
 	printf("Dictionary size: %i\n", param.dict_size);
 	
 	/*_____________________________TESTING HASH TABLE____________________________*/
-	
+	/*
 	hashtable_t* hashtable;
 	hashtable = create_hash_table(100);
 	if(hashtable == NULL){
@@ -170,6 +183,6 @@ int main(int argc, char* argv[]){
 		printf("The node was found, node id = %i\n", node_id); 	
 	else
 		printf("The node wasn't found, node id = %i\n", node_id);
-	
+	*/
 	return 0;
 }
