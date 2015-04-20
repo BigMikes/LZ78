@@ -146,7 +146,7 @@ int main(int argc, char* argv[]){
 	printf("Output file: %s\n", param.output_file);
 	printf("Dictionary size: %i\n", param.dict_size);
 	printf("correct: y/n?\n");
-	scanf("%c", &response);
+	ret = scanf("%c", &response);
 	switch(response){
 		case 'y':
 		case 'Y':
