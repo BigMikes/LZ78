@@ -2,6 +2,7 @@
 #include "hash_table.h"
 #include <string.h>
 #include  <stdarg.h>
+#include <math.h>
 
 /*---------SHARED RESOURCE----------*/ 
 void printv(int verbosity, const char *format, ...);

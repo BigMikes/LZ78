@@ -1,8 +1,25 @@
 #include "lz78.h"
 
-
-void emit_encode(int num_records, struct bitio* output, int father_id){
-	printf("emetto %i\n", father_id);
+/*Writes the encoding of the tree node on the file
+* Input param: File descriptor, dimension of the tree (needed for know how many bits it have to read), and the node id to write
+* Return: -1 if an error occurs, 1 if success
+*/
+int emit_encode(int num_records, struct bitio* output, int father_id){
+	int how_many;
+	int ret;	
+	
+	if(output == NULL || num_records < 0){
+		return -1;
+	}
+	//compute the number of bits to write with logarithm in base 2
+	how_many =  (int)ceil(log((double) num_records) / log(2));
+	printf("emetto %i su %i bits\n", father_id, how_many);
+	//read the bits from the file 
+	ret = bitio_write_chunk(output, (uint64_t)father_id, how_many);
+	if(ret != how_many){
+		return -1;
+	}
+	return 1;
 }
 
 
@@ -34,6 +51,7 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	int node_id, find;
 	int father_id = 0;
 	int start = 1;
+	int error;
 	
 	do{
 		if(start){
@@ -42,7 +60,8 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 		start = 1;
 		if(readed_byte==EOF){
 			//termine file
-			emit_encode(get_num_records(hashtable), output, father_id);
+			error = emit_encode(get_num_records(hashtable), output, father_id);
+			error = emit_encode(get_num_records(hashtable), output, 0);
 			break;
 		}
 		node_id = (int)search(hashtable, (char)readed_byte, father_id, &find);
@@ -50,7 +69,7 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 			case 0:
 				//emetti codifica
 				//la nuova ricerca deve partire dal carattere che ha fatto fallire readed_byte
-				emit_encode(get_num_records(hashtable), output, father_id);
+				error = emit_encode(get_num_records(hashtable), output, father_id);
 				insert(hashtable, (char)readed_byte, father_id);
 				father_id = 0;
 				start = 0;
@@ -62,10 +81,17 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 				break;
 			case -1:
 				//ritorna errore hashtable non consistente
-				printf("Tabella non consistente");
+				printf("Tabella non consistente\n");
 				return -1;
 				break;
 		}
+		//checks if some error occurs during the emitting of the encoding
+		if(error == -1){
+			printf("Error in writing of the encoding\n");
+			return -1;
+			break;
+		}
+		
 	} while(1);
 	
 	
