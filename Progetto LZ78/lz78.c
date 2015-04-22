@@ -169,7 +169,6 @@ int main(int argc, char* argv[]){
 		printf("some error\n");
 		return 0;
 	}
-
-	//se cerchi il codice di test della hash table te l'ho spostato in testhashtable.c
+	
 	return 0;
 }
