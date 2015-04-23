@@ -49,17 +49,20 @@ int fill_first_layer(hashtable_t* ht){
 
 
 //Create the hash table with a given size
-hashtable_t* create_hash_table(int size){
+hashtable_t* create_hash_table(int dict_size){
 	hashtable_t *ret = NULL;
 	int seed; 
-	if(size <= 0)
+	int size = 256;
+	if(dict_size <= 0){
 		return NULL;
+	}
 	
 	ret = malloc(sizeof(hashtable_t));
 	if(ret == NULL)
 		return NULL;
 		
-	//-----------------------------------------------------------------Gestire fattore di espansione, cioè fare una tabella maggiore rispetto al dizionario
+	//Gestire fattore di espansione, cioè fare una tabella maggiore rispetto al dizionario
+	size += dict_size;
 	
 	ret->table = calloc(size, sizeof(entry_t * ));
 	if(ret->table == NULL){
@@ -106,20 +109,22 @@ void restart_ht(hashtable_t* ht){
 
 
 //Given the key: <Father_id, Symbol> return the hash value
-uint32_t key_generation(hashtable_t* ht, uint32_t father_id, char symbol){	
+uint32_t key_generation(hashtable_t* ht, uint32_t father_id, char symbol){
 	uint32_t hash_value;
 	//The buffer that will contain the father_id concatenated with symbol 
-	unsigned char* to_hash;
-	int dim = sizeof(father_id) + sizeof(symbol);
+	const int dim = sizeof(father_id) + sizeof(symbol);
+	unsigned char to_hash[dim];
 	
-	to_hash = malloc(dim);
-	
-	*to_hash = (father_id << (sizeof(symbol) * 8)) | symbol;
+	//Concatenate the char in the most significat part of the buffer and the father_id in the least significant part
+	to_hash[0] =  symbol;
+	to_hash[1] =  father_id;
+	to_hash[2] =  father_id >> 8;
+	to_hash[3] =  father_id >> 16;
+	to_hash[4] =  father_id >> 24;
 	
 	//Hash
 	hash_value = hash(ht, to_hash, dim); 	
 	
-	free(to_hash);
 	
 	return hash_value % ht->size;
 }
@@ -159,8 +164,14 @@ uint32_t search(hashtable_t* ht, char symbol, uint32_t father_id, int* find){
 		for(i = 0; i < ht->size; i++){
 			hash_val += 1;
 			hash_val = hash_val % ht->size;
-			node = ht->table[hash_val];	
-			if((node != NULL) && (node->father_id == father_id) && (node->symbol == symbol)){
+			node = ht->table[hash_val];
+			//If it meets an empty entry it does mean that such node can't exist at all
+			//otherwise it would be in this empty entry
+			if(node == NULL){
+				*find = 0;
+				return 0;
+			}	
+			if((node->father_id == father_id) && (node->symbol == symbol)){
 				*find = 1;
 				return node->node_id;
 			}	
@@ -188,7 +199,8 @@ uint32_t insert(hashtable_t* ht, char symbol, uint32_t father_id){
 	node = malloc(sizeof(entry_t));
 	node->father_id = father_id;
 	node->symbol = symbol;
-	node->node_id = ++ht->num_records;			//Increment the number of entry and use it as new node id
+	ht->num_records += 1;
+	node->node_id = ht->num_records;			//Increment the number of entry and use it as new node id
 	ret_value = node->node_id;
 		
 	hash_val = key_generation(ht, father_id, symbol);
