@@ -45,7 +45,7 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 			memset(partial_string, 0, *size_array * sizeof(char));
 			memset(inverse_string, 0, *size_array * sizeof(char));
 		}
-		inverse_string[counter] = tree[previous_id].symbol;
+		inverse_string[counter] = (char)tree[previous_id].symbol - 1;
 		previous_id = tree[previous_id].father_id;
 		if(previous_id == 0 ){
 			break;
@@ -55,7 +55,6 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 	
 	//invert string
 	for(i = counter ; i >= 0 ; i--){
-		inverse_string[counter] = (char)inverse_string[counter] - 1;
 		partial_string[counter-i] = inverse_string[counter];
 	}
 }
