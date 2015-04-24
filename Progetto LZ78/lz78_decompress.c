@@ -55,8 +55,10 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 	
 	//invert string
 	for(i = counter ; i >= 0 ; i--){
-		partial_string[counter-i] = inverse_string[counter];
+		partial_string[counter-i] = inverse_string[i];
 	}
+	printf("--- diretta: %s\n", partial_string);
+	printf("--- inversa: %s\n", inverse_string);
 }
 
 
@@ -97,6 +99,7 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 	printf("I have read node id = %i\n", node_id);
 	
 	retrieve_string(tree, node_id, partial_string, inverse_string, &size_array);
+	printf("stringa letta: %s\n", partial_string);
 	fwrite (partial_string , sizeof(char), strlen(partial_string), output);//change strlen()
 	father_id_old = node_id;
 	char char_old = partial_string[0];
@@ -109,6 +112,7 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 		printf("I have read node id = %i\n", node_id);
 		
 		retrieve_string(tree, node_id, partial_string, inverse_string, &size_array);
+		printf("stringa letta: %s\n", partial_string);
 		fwrite (partial_string , sizeof(char), strlen(partial_string), output);//change strlen()
 		tree[tree_size].symbol = char_old;
 		tree[tree_size].father_id = father_id_old;
