@@ -1,18 +1,34 @@
 #include "lz78.h"
 
+int compute_bit_len(int num){
+	int bits = 8;
+	int bound = 256;
+	//max encoding bit dimention = 32.
+	while(bits < 32){
+		if(num < bound)
+			return bits;
+		else{
+			bound *= 2;
+			bits++;
+		}
+	}
+	return 32;
+}
+
+
 /*Writes the encoding of the tree node on the file
 * Input param: File descriptor, dimension of the tree (needed for know how many bits it have to read), and the node id to write
 * Return: -1 if an error occurs, 1 if success
 */
 int emit_encode(int num_records, struct bitio* output, int father_id){
-	int how_many = 32;	//-----------------------------------------------------------------------------Per ora codifico tutto su 32bit
+	int how_many;	
 	int ret;	
 	
 	if(output == NULL || num_records < 0){
 		return -1;
 	}
 	//compute the number of bits to write with logarithm in base 2
-	//how_many =  (int)ceil(log((double) num_records) / log(2));
+	how_many = compute_bit_len(num_records);
 	printf("emetto %i su %i bits\n", father_id, how_many);
 	//read the bits from the file 
 	ret = bitio_write_chunk(output, (uint64_t)father_id, how_many);
@@ -69,6 +85,7 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 			case 0:
 				//emetti codifica
 				//la nuova ricerca deve partire dal carattere che ha fatto fallire readed_byte
+				printf("Char = %c  ", (char)readed_byte); 
 				error = emit_encode(get_num_records(hashtable), output, father_id);
 				insert(hashtable, (char)readed_byte, father_id);
 				father_id = 0;
