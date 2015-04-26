@@ -29,7 +29,7 @@ int emit_encode(int num_records, struct bitio* output, int father_id){
 	}
 	//compute the number of bits to write with logarithm in base 2
 	how_many = compute_bit_len(num_records);
-	printf("emetto %i su %i bits\n", father_id, how_many);
+	printf("emetto %i su %i bits, tree size = %i\n", father_id, how_many, num_records);
 	//read the bits from the file 
 	ret = bitio_write_chunk(output, (uint64_t)father_id, how_many);
 	if(ret != how_many){
