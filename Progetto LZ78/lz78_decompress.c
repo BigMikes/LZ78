@@ -41,8 +41,21 @@ int read_node(struct bitio* fd, int tree_dim){
 	if(ret != how_many){
 		return -1;
 	}
-	printf("I have read %i on %i bits\n", (int)node_id, how_many);
+	printf("I have read %i on %i bits, tree size = %i\n", (int)node_id, how_many, tree_dim);
 	return (int) node_id;
+}
+
+/*
+* Function that given a node id, goes to see the first char of the reconstructed string
+*/
+char reconstruct_string(struct node* tree, int previous_id){
+	int node_id = previous_id;
+	char ret = 0;
+	while(node_id != 0){
+		ret = (char)(tree[node_id].symbol - 1);			//-1 perchè il carattere che cerchiamo è del primo layer, e questi sono scalati di 1
+		node_id = tree[node_id].father_id;
+	}
+	return ret;
 }
 
 
@@ -66,10 +79,17 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 			previous_id = node_id;
 			counter = 0;
 		}
+		//Il primo layer composto da tutti i caratteri ascii è scalato di 1 rispetto all'identificatore del nodo
 		if(previous_id <= 255)
 			inverse_string[counter] = (char)(tree[previous_id].symbol - 1);
-		else
-			inverse_string[counter] = (char)(tree[previous_id].symbol);
+		else{	
+			//se è 0 vuol dire che siamo in quel caso particolare, dove la stringa che andiamo a ricomporre è composta da rami non ancora aggiornati
+			//quindi in principio dell'algoritmo, su questi rami particolari, va il primo carattere della stringa che stiamo ricostruendo
+			if(tree[previous_id].symbol == 0)					
+				inverse_string[counter] = reconstruct_string(tree, previous_id);
+			else
+				inverse_string[counter] = tree[previous_id].symbol;
+		}
 		previous_id = tree[previous_id].father_id;
 		printf("Symbolo = %c; Padre = %i\n",inverse_string[counter], previous_id);
 		if(previous_id == 0 ){
@@ -81,6 +101,7 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 	for(i = counter ; i >= 0 ; i--){
 		partial_string[counter-i] = inverse_string[i];
 	}
+	partial_string[counter+1] = '\0';
 }
 
 void init_tree(struct node* tree){
@@ -94,6 +115,14 @@ void init_tree(struct node* tree){
 	return;
 }
 
+void clear_tree(struct node* tree, int tree_max_size){
+	int i;
+	for(i = 256; i <= tree_max_size; i++){
+		tree[i].father_id = 0;
+		tree[i].symbol = 0;
+	} 
+	return;
+}
 
 
 int decompressor(char* input_file, char* output_file, int verbose_mode){
@@ -101,7 +130,7 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 	FILE* output;
 	struct node* tree;
 	int tree_max_size = 256;
-	int tree_size = 257;	//First id starts from 257
+	int tree_size = 256;	//First id starts from 257
 	int node_id;
 	int old_node_id; 
 	int size_array = 50;	//default value
@@ -134,24 +163,28 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 			break;
 		//Extract the string from the tree 
 		retrieve_string(tree, node_id, partial_string, inverse_string, &size_array);
+		printf("Stampo stringa = %s\n", partial_string);
 		fwrite (partial_string , sizeof(char), strlen(partial_string), output);
 		//Update the symbol of the old entry 
 		if(old_node_id > 0){					//This check is needed for the first cycle, where there are no entry to update.
 			tree[old_node_id].symbol = partial_string[0];
 			printf("Aggiorno Old Node = %i con symbol = %c, padre id = %i\n", old_node_id, tree[old_node_id].symbol, tree[old_node_id].father_id);
 		}
+		tree_size++;						//As in the compressor, increments first, then uses the id
 		//Add new entry to the tree
 		tree[tree_size].father_id = node_id;
 		old_node_id = tree_size;
-		tree_size++;
+		
 		//Tree is full, reset it!
-		if(tree_size == tree_max_size){
+		if(tree_size >= tree_max_size){
 			tree_size = 256;
+			clear_tree(tree, tree_max_size);
 			old_node_id = -1;
 		}
 	}
 	while(1);
 	
+	fflush(output);
 	fclose(output);
 	bitio_close(input);
 	//free(partial_string);				//Danno errore...come mai?
