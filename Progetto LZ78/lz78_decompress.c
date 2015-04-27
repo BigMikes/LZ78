@@ -59,7 +59,7 @@ char reconstruct_string(struct node* tree, int previous_id){
 }
 
 
-void retrieve_string(struct node* tree, int node_id, char* partial_string, char* inverse_string, int *size_array){
+void retrieve_string(struct node* tree, int node_id, char* partial_string, char* inverse_string, int *size_array, int *string_len){
 	int i;
 	int counter = 0;
 	int previous_id = node_id;
@@ -102,6 +102,7 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 		partial_string[counter-i] = inverse_string[i];
 	}
 	partial_string[counter+1] = '\0';
+	*string_len = counter+1;
 }
 
 void init_tree(struct node* tree){
@@ -136,6 +137,7 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 	int size_array = 50;	//default value
 	char* partial_string = (char*)malloc( size_array * sizeof(char) );
 	char* inverse_string = (char*)malloc( size_array * sizeof(char) );
+	int string_len;
 	
 	//Open the compressed file
 	input = bitio_open(input_file, 'r');
@@ -162,9 +164,9 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 		if(node_id == 0)
 			break;
 		//Extract the string from the tree 
-		retrieve_string(tree, node_id, partial_string, inverse_string, &size_array);
+		retrieve_string(tree, node_id, partial_string, inverse_string, &size_array, &string_len);
 		printf("Stampo stringa = %s\n", partial_string);
-		fwrite (partial_string , sizeof(char), strlen(partial_string), output);
+		fwrite (partial_string , sizeof(char), string_len, output);
 		//Update the symbol of the old entry 
 		if(old_node_id > 0){					//This check is needed for the first cycle, where there are no entry to update.
 			tree[old_node_id].symbol = partial_string[0];
