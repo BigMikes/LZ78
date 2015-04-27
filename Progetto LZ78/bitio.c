@@ -219,7 +219,7 @@ int bitio_write_chunk(struct bitio *b, uint64_t x, int dim){
 		errno = EINVAL;
 		return -1;
 	}
-	if(b->bitio_wp == sizeof(b->buf) * 8){
+	if(b->bitio_wp + dim >= sizeof(b->buf) * 8){
 		int status = bitio_flush(b);
 		if(status < 0)
 			return -1;		
