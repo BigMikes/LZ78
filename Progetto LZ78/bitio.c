@@ -119,18 +119,10 @@ int bitio_read(struct bitio* b){
 }
 
 
-/*----- READ a chunk of bits----*/
-int bitio_read_chunk(struct bitio* b, uint64_t* buf, int dim){
-	uint64_t d, mask, temp;
-	int x;
-	int pos, ofs;
-	int dim_of_a_word = sizeof(b->buf[0]) * 8;
-	int unaligned, num_of_bits;
-			
-	if(b == NULL || b->bitio_mode != 'r' || b->bitio_fd < 0 || dim > 64){
-		errno = EINVAL;
+int fill_buffer(struct bitio* b){
+	int x = 0;
+	if(b == NULL)
 		return -1;
-	}
 	if(b->bitio_rp == b->bitio_wp){
 		b->bitio_rp = b->bitio_wp = 0;
 		for(;;){
@@ -146,6 +138,25 @@ int bitio_read_chunk(struct bitio* b, uint64_t* buf, int dim){
 			}
 		}
 	}
+	return 1;
+}
+
+/*----- READ a chunk of bits----*/
+int bitio_read_chunk(struct bitio* b, uint64_t* buf, int dim){
+	uint64_t d, mask, temp;
+	int errors;
+	int pos, ofs;
+	int dim_of_a_word = sizeof(b->buf[0]) * 8;
+	int unaligned, num_of_bits;
+			
+	if(b == NULL || b->bitio_mode != 'r' || b->bitio_fd < 0 || dim > 64){
+		errno = EINVAL;
+		return -1;
+	}
+	
+	errors = fill_buffer(b);
+	if(errors == -1)
+		return -1;
 	
 	pos = b->bitio_rp / dim_of_a_word;
 	ofs = b->bitio_rp % dim_of_a_word;
@@ -169,6 +180,9 @@ int bitio_read_chunk(struct bitio* b, uint64_t* buf, int dim){
 		temp = (d & (mask << ofs)) >> ofs;
 		b->bitio_rp += num_of_bits;
 		//2nd step
+		errors = fill_buffer(b);
+		if(errors == -1)
+			return -1;
 		//aggiorno il puntatore alla locazione di memoria
 		pos = b->bitio_rp / dim_of_a_word;
 		d = le64toh(b->buf[pos]);
