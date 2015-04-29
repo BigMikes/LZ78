@@ -153,7 +153,7 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 	}
 	//Allocate the tree structure
 	tree_max_size += 300; 						//dictionary size = 300 per ora, poi da leggere dall'header
-	tree = (struct node*)calloc(tree_size, sizeof(struct node));
+	tree = (struct node*)calloc(tree_max_size, sizeof(struct node));
 	//Initialization the firt layer of the tree
 	init_tree(tree);
 	old_node_id = -1;
@@ -189,9 +189,8 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 	fflush(output);
 	fclose(output);
 	bitio_close(input);
-	//free(partial_string);				//Danno errore...come mai?
-	//free(inverse_string);
-	//free(tree);
-	return 1;
-	
+	free(partial_string);				//Danno errore...come mai?
+	free(inverse_string);
+	free(tree);
+	return 1;	
 }
