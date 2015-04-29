@@ -20,7 +20,7 @@ int compute_bit_len(int num){
 * Input param: File descriptor, dimension of the tree (needed for know how many bits it have to read), and the node id to write
 * Return: -1 if an error occurs, 1 if success
 */
-int emit_encode(int num_records, struct bitio* output, int father_id){
+int emit_encode(int verbose, int num_records, struct bitio* output, int father_id){
 	int how_many;	
 	int ret;	
 	
@@ -29,7 +29,7 @@ int emit_encode(int num_records, struct bitio* output, int father_id){
 	}
 	//compute the number of bits to write with logarithm in base 2
 	how_many = compute_bit_len(num_records);
-	printf("emetto %i su %i bits, tree size = %i\n", father_id, how_many, num_records);
+	printv(verbose, "emetto %i su %i bits, tree size = %i\n", father_id, how_many, num_records);
 	//read the bits from the file 
 	ret = bitio_write_chunk(output, (uint64_t)father_id, how_many);
 	if(ret != how_many){
@@ -76,8 +76,8 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 		start = 1;
 		if(readed_byte==EOF){
 			//termine file
-			error = emit_encode(get_num_records(hashtable), output, father_id);
-			error = emit_encode(get_num_records(hashtable), output, 0);
+			error = emit_encode(verbose, get_num_records(hashtable), output, father_id);
+			error = emit_encode(verbose, get_num_records(hashtable), output, 0);
 			break;
 		}
 		node_id = (int)search(hashtable, (char)readed_byte, father_id, &find);
@@ -85,8 +85,8 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 			case 0:
 				//emetti codifica
 				//la nuova ricerca deve partire dal carattere che ha fatto fallire readed_byte
-				printf("Char = %c  ", (char)readed_byte); 
-				error = emit_encode(get_num_records(hashtable), output, father_id);
+				printv(verbose, "Char = %c  ", (char)readed_byte); 
+				error = emit_encode(verbose, get_num_records(hashtable), output, father_id);
 				insert(hashtable, (char)readed_byte, father_id);
 				father_id = 0;
 				start = 0;
