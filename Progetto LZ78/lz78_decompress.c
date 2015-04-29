@@ -26,7 +26,7 @@ int compute_bit_length(int num){
 * Input param: File descriptor, dimension of the tree (needed for know how many bits it have to read)
 * Return: -1 if an error occurs, otherwise the node identifier
 */
-int read_node(struct bitio* fd, int tree_dim){
+int read_node(int verbose_mode, struct bitio* fd, int tree_dim){
 	uint64_t node_id;
 	int how_many; 
 	int ret;
@@ -41,9 +41,10 @@ int read_node(struct bitio* fd, int tree_dim){
 	if(ret != how_many){
 		return -1;
 	}
-	printf("I have read %i on %i bits, tree size = %i\n", (int)node_id, how_many, tree_dim);
+	printv(verbose_mode, "I have read %i on %i bits, tree size = %i\n", (int)node_id, how_many, tree_dim);
 	return (int) node_id;
 }
+
 
 /*
 * Function that given a node id, goes to see the first char of the reconstructed string
@@ -59,7 +60,7 @@ char reconstruct_string(struct node* tree, int previous_id){
 }
 
 
-void retrieve_string(struct node* tree, int node_id, char* partial_string, char* inverse_string, int *size_array, int *string_len){
+void retrieve_string(int verbose_mode, struct node* tree, int node_id, char* partial_string, char* inverse_string, int *size_array, int *string_len){
 	int i;
 	int counter = 0;
 	int previous_id = node_id;
@@ -68,7 +69,7 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 	memset(partial_string, 0, *size_array * sizeof(char));
 	memset(inverse_string, 0, *size_array * sizeof(char));
 	
-	printf("Risalgo l'albero dal nodo %i\n", node_id);
+	printv(verbose_mode, "Risalgo l'albero dal nodo %i\n", node_id);
 	while(1){
 		if(counter == (*size_array)-1){
 			*size_array = *size_array + 1;
@@ -91,7 +92,7 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 				inverse_string[counter] = tree[previous_id].symbol;
 		}
 		previous_id = tree[previous_id].father_id;
-		printf("Symbolo = %c; Padre = %i\n",inverse_string[counter], previous_id);
+		printv(verbose_mode, "Symbolo = %c; Padre = %i\n",inverse_string[counter], previous_id);
 		if(previous_id == 0 ){
 			break;
 		}
@@ -105,6 +106,7 @@ void retrieve_string(struct node* tree, int node_id, char* partial_string, char*
 	*string_len = counter+1;
 }
 
+
 void init_tree(struct node* tree){
 	char ascii;
 	int i;
@@ -116,6 +118,7 @@ void init_tree(struct node* tree){
 	return;
 }
 
+
 void clear_tree(struct node* tree, int tree_max_size){
 	int i;
 	for(i = 256; i <= tree_max_size; i++){
@@ -126,7 +129,7 @@ void clear_tree(struct node* tree, int tree_max_size){
 }
 
 
-int decompressor(char* input_file, char* output_file, int verbose_mode){
+int decompressor(char* input_file, char* output_file, int dictionary_size, int verbose_mode){
 	struct bitio* input;
 	FILE* output;
 	struct node* tree;
@@ -152,25 +155,25 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 		return -1;
 	}
 	//Allocate the tree structure
-	tree_max_size += 300; 						//dictionary size = 300 per ora, poi da leggere dall'header
+	tree_max_size += dictionary_size; 						//dictionary size = 300 per ora, poi da leggere dall'header
 	tree = (struct node*)calloc(tree_max_size, sizeof(struct node));
 	//Initialization the firt layer of the tree
 	init_tree(tree);
 	old_node_id = -1;
 	//Decompress
 	do{
-		node_id = read_node(input, tree_size);
+		node_id = read_node(verbose_mode, input, tree_size);
 		//If the node is 0 we are at the end of the file
 		if(node_id == 0)
 			break;
 		//Extract the string from the tree 
-		retrieve_string(tree, node_id, partial_string, inverse_string, &size_array, &string_len);
-		printf("Stampo stringa = %s\n", partial_string);
+		retrieve_string(verbose_mode, tree, node_id, partial_string, inverse_string, &size_array, &string_len);
+		printv(verbose_mode, "Stampo stringa = %s\n", partial_string);
 		fwrite (partial_string , sizeof(char), string_len, output);
 		//Update the symbol of the old entry 
 		if(old_node_id > 0){					//This check is needed for the first cycle, where there are no entry to update.
 			tree[old_node_id].symbol = partial_string[0];
-			printf("Aggiorno Old Node = %i con symbol = %c, padre id = %i\n", old_node_id, tree[old_node_id].symbol, tree[old_node_id].father_id);
+			printv(verbose_mode, "Aggiorno Old Node = %i con symbol = %c, padre id = %i\n", old_node_id, tree[old_node_id].symbol, tree[old_node_id].father_id);
 		}
 		tree_size++;						//As in the compressor, increments first, then uses the id
 		//Add new entry to the tree
@@ -192,5 +195,6 @@ int decompressor(char* input_file, char* output_file, int verbose_mode){
 	free(partial_string);				//Danno errore...come mai?
 	free(inverse_string);
 	free(tree);
+	printf("Decoding done\n");
 	return 1;	
 }
