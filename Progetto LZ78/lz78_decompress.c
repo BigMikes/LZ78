@@ -60,49 +60,33 @@ char reconstruct_string(struct node* tree, int previous_id){
 }
 
 
-void retrieve_string(int verbose_mode, struct node* tree, int node_id, char* partial_string, char* inverse_string, int *size_array, int *string_len){
-	int i;
+void retrieve_string(int verbose_mode, struct node* tree, int node_id, char* partial_string, int *size_array, int *string_len){
 	int counter = 0;
 	int previous_id = node_id;
 	
 	//reset strings
 	memset(partial_string, 0, *size_array * sizeof(char));
-	memset(inverse_string, 0, *size_array * sizeof(char));
 	
 	printv(verbose_mode, "Risalgo l'albero dal nodo %i\n", node_id);
 	while(1){
-		if(counter == (*size_array)-1){
-			*size_array = *size_array + 1;
-			partial_string = (char*)realloc(partial_string, *size_array * sizeof(char));
-			inverse_string = (char*)realloc(inverse_string, *size_array * sizeof(char));
-			memset(partial_string, 0, *size_array * sizeof(char));
-			memset(inverse_string, 0, *size_array * sizeof(char));
-			previous_id = node_id;
-			counter = 0;
-		}
 		//Il primo layer composto da tutti i caratteri ascii è scalato di 1 rispetto all'identificatore del nodo
 		if(previous_id <= 255)
-			inverse_string[counter] = (char)(tree[previous_id].symbol - 1);
+			partial_string[*size_array - counter] = tree[previous_id - 1].symbol;
 		else{	
 			//se è 0 vuol dire che siamo in quel caso particolare, dove la stringa che andiamo a ricomporre è composta da rami non ancora aggiornati
 			//quindi in principio dell'algoritmo, su questi rami particolari, va il primo carattere della stringa che stiamo ricostruendo
 			if(tree[previous_id].symbol == 0)					
-				inverse_string[counter] = reconstruct_string(tree, previous_id);
+				partial_string[*size_array - counter] = reconstruct_string(tree, previous_id);
 			else
-				inverse_string[counter] = tree[previous_id].symbol;
+				partial_string[*size_array - counter] = tree[previous_id].symbol;
 		}
 		previous_id = tree[previous_id].father_id;
-		printv(verbose_mode, "Symbolo = %c; Padre = %i\n",inverse_string[counter], previous_id);
+		
 		if(previous_id == 0 ){
 			break;
 		}
 		counter++;
 	}
-	//invert string
-	for(i = counter ; i >= 0 ; i--){
-		partial_string[counter-i] = inverse_string[i];
-	}
-	partial_string[counter+1] = '\0';
 	*string_len = counter+1;
 }
 
@@ -137,9 +121,7 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 	int tree_size = 256;	//First id starts from 257
 	int node_id;
 	int old_node_id; 
-	int size_array = 50;	//default value
-	char* partial_string = (char*)malloc( size_array * sizeof(char) );
-	char* inverse_string = (char*)malloc( size_array * sizeof(char) );
+	char* partial_string;
 	int string_len;
 	
 	//Open the compressed file
@@ -157,6 +139,7 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 	//Allocate the tree structure
 	tree_max_size += dictionary_size; 						//dictionary size = 300 per ora, poi da leggere dall'header
 	tree = (struct node*)calloc(tree_max_size, sizeof(struct node));
+	partial_string = (char*)malloc( tree_max_size * sizeof(char) );
 	//Initialization the firt layer of the tree
 	init_tree(tree);
 	old_node_id = -1;
@@ -167,9 +150,9 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 		if(node_id == 0)
 			break;
 		//Extract the string from the tree 
-		retrieve_string(verbose_mode, tree, node_id, partial_string, inverse_string, &size_array, &string_len);
+		retrieve_string(verbose_mode, tree, node_id, partial_string, &tree_max_size, &string_len);
 		printv(verbose_mode, "Stampo stringa = %s\n", partial_string);
-		fwrite (partial_string , sizeof(char), string_len, output);
+		fwrite (partial_string + (tree_max_size - string_len), sizeof(char), string_len, output);
 		//Update the symbol of the old entry 
 		if(old_node_id > 0){					//This check is needed for the first cycle, where there are no entry to update.
 			tree[old_node_id].symbol = partial_string[0];
@@ -192,9 +175,8 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 	fflush(output);
 	fclose(output);
 	bitio_close(input);
-	free(partial_string);				//Danno errore...come mai?
-	free(inverse_string);
 	free(tree);
+	free(partial_string);	
 	printf("Decoding done\n");
 	return 1;	
 }
