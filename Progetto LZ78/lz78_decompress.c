@@ -71,14 +71,14 @@ void retrieve_string(int verbose_mode, struct node* tree, int node_id, char* par
 	while(1){
 		//Il primo layer composto da tutti i caratteri ascii è scalato di 1 rispetto all'identificatore del nodo
 		if(previous_id <= 255)
-			partial_string[*size_array - counter] = tree[previous_id - 1].symbol;
+			partial_string[*size_array - counter - 1] = tree[previous_id - 1].symbol;
 		else{	
 			//se è 0 vuol dire che siamo in quel caso particolare, dove la stringa che andiamo a ricomporre è composta da rami non ancora aggiornati
 			//quindi in principio dell'algoritmo, su questi rami particolari, va il primo carattere della stringa che stiamo ricostruendo
 			if(tree[previous_id].symbol == 0)					
-				partial_string[*size_array - counter] = reconstruct_string(tree, previous_id);
+				partial_string[*size_array - counter - 1] = reconstruct_string(tree, previous_id);
 			else
-				partial_string[*size_array - counter] = tree[previous_id].symbol;
+				partial_string[*size_array - counter - 1] = tree[previous_id].symbol;
 		}
 		previous_id = tree[previous_id].father_id;
 		
@@ -151,12 +151,12 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 			break;
 		//Extract the string from the tree 
 		retrieve_string(verbose_mode, tree, node_id, partial_string, &tree_max_size, &string_len);
-		printv(verbose_mode, "Stampo stringa = %s\n", partial_string);
+		printv(verbose_mode, "Stampo stringa = %s\n", partial_string + (tree_max_size - string_len));
 		fwrite (partial_string + (tree_max_size - string_len), sizeof(char), string_len, output);
 		//Update the symbol of the old entry 
 		if(old_node_id > 0){					//This check is needed for the first cycle, where there are no entry to update.
-			tree[old_node_id].symbol = partial_string[0];
-			printv(verbose_mode, "Aggiorno Old Node = %i con symbol = %c, padre id = %i\n", old_node_id, tree[old_node_id].symbol, tree[old_node_id].father_id);
+			tree[old_node_id].symbol = partial_string[tree_max_size - string_len];
+			printv(verbose_mode, "Aggiorno Old Node = %i con symbol = %c, padre id = %i\n", old_node_id, tree[old_node_id].symbol, 				tree[old_node_id].father_id);
 		}
 		tree_size++;						//As in the compressor, increments first, then uses the id
 		//Add new entry to the tree
