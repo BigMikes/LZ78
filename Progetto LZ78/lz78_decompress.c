@@ -151,12 +151,12 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 			break;
 		//Extract the string from the tree 
 		retrieve_string(verbose_mode, tree, node_id, partial_string, &tree_max_size, &string_len);
-		printv(verbose_mode, "Stampo stringa = %s\n", partial_string + (tree_max_size - string_len));
+		printv(verbose_mode, "Stampo stringa = %.*s\n", string_len, partial_string + (tree_max_size - string_len));
 		fwrite (partial_string + (tree_max_size - string_len), sizeof(char), string_len, output);
 		//Update the symbol of the old entry 
 		if(old_node_id > 0){					//This check is needed for the first cycle, where there are no entry to update.
 			tree[old_node_id].symbol = partial_string[tree_max_size - string_len];
-			printv(verbose_mode, "Aggiorno Old Node = %i con symbol = %c, padre id = %i\n", old_node_id, tree[old_node_id].symbol, 				tree[old_node_id].father_id);
+			printv(verbose_mode, "Aggiorno Old Node = %i con symbol = %c, padre id = %i\n", old_node_id, tree[old_node_id].symbol, tree[old_node_id].father_id);
 		}
 		tree_size++;						//As in the compressor, increments first, then uses the id
 		//Add new entry to the tree
