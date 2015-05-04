@@ -150,7 +150,11 @@ int main(int argc, char* argv[]){
 	switch(response){
 		case 'y':
 		case 'Y':
-			printf("start encoding\n");
+			if(param.mode==1){	//compressore
+				printf("start encoding\n");
+			} else {
+				printf("start decoding\n");
+			}
 			break;
 		case 'n':
 		case 'N':
@@ -169,7 +173,11 @@ int main(int argc, char* argv[]){
 		printf("some error\n");
 		return 0;
 	}
-
+	if(param.mode==1){	//compressore
+		printf("encoding done\n");
+	} else {
+		printf("decoding done\n");
+	}
 	//se cerchi il codice di test della hash table te l'ho spostato in testhashtable.c
 	return 0;
 }

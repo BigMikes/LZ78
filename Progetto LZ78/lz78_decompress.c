@@ -177,6 +177,5 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 	bitio_close(input);
 	free(tree);
 	free(partial_string);	
-	printf("Decoding done\n");
 	return 1;	
 }
