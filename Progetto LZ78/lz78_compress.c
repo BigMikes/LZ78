@@ -69,9 +69,17 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	int start = 1;
 	int error = 0;
 	
+	//for the load bar
+	struct stat st;
+	stat(input_file, &st);
+	int size = st.st_size;
+	int total_read_char = 0;
+	
 	do{
 		if(start){
 			readed_byte=getc(input);
+			total_read_char++;
+			loadBar(!verbose, total_read_char, size, 40, 40);
 		}
 		start = 1;
 		if(readed_byte==EOF){
