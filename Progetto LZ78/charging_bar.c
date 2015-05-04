@@ -7,7 +7,16 @@
 #include <math.h>
 
 
-static inline void loadBar(int x, int n, int r, int w)
+/*
+ * 
+ * name: loadBar
+ * @param
+ * 		Process has done x out of n rounds,
+ * 		and we want a bar of width w and resolution r.
+ * @return
+ * 
+ */
+void loadBar(int x, int n, int r, int w)
 {
 	int i, j;
 	float ratio;
@@ -41,13 +50,9 @@ int main(){
 	printf("test charging bar: \n");
 	
 	do{
-		/*fflush(stdout);
-		output[i]='-';
-		printf("%s  %i%%", output, (i+1)*10);*/
-		loadBar(i, 10, 20, 20);
+		loadBar(i, 40, 40, 40);
 		sleep(1);
 		i++;
-	}while(i<10);
-	printf("\n");
+	}while(i<40);
 	return 0;
 }
