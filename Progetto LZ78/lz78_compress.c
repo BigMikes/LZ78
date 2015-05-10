@@ -47,8 +47,8 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	/*------------controlli---------------------------------------------------*/
 	
 	input = fopen(input_file, "r");
-	if(input<0){
-		printf("Impossible to open input file. You are sure taht exists?\n");
+	if(input==NULL){
+		printf("Impossible to open input file. You are sure that exists?\n");
 		return -1;
 	}
 	output = bitio_open(output_file, 'w');
