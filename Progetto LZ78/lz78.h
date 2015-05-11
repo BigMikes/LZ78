@@ -1,7 +1,7 @@
 #include "bitio.h"
 #include "hash_table.h"
 #include <string.h>
-#include  <stdarg.h>
+#include <stdarg.h>
 #include <sys/stat.h>
 
 /*---------SHARED RESOURCE----------*/ 
