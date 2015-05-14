@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <utime.h>
+#include <openssl/evp.h>
 
 
 /*---------SHARED RESOURCE----------*/ 
