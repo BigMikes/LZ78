@@ -1,4 +1,4 @@
-hash table(char, id_padre, id)
+﻿hash table(char, id_padre, id)
 
 COMPRESSORE
 
@@ -40,5 +40,5 @@ aggiungo alla hash table (char_mancante, C, last_node++)
 
 -----------------------------------------------------------
 HEADER_FILE
-Solo il primo e il secondo campo devono essere separati da un tab perchè il nome del file può avere lunghezza variabile. Infine c'è un carattere di new line.
-<lenght_header_file><name_file><dict_size><la_date><lm_date><file_size>
+
+<lenght_name_field><name_file><dict_size><la_date><lm_date><file_size>
