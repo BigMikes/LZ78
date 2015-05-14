@@ -17,5 +17,6 @@ int bitio_read_chunk(struct bitio* b, uint64_t* buf, int dim);
 int bitio_read(struct bitio* f);
 int bitio_flush(struct bitio* f);
 int bitio_close(struct bitio* f);
+int get_fd(struct bitio* bitio);
 
 #endif /*_BITIO_H_12345931_*/

@@ -8,6 +8,13 @@ struct bitio{
 	uint64_t buf[BITIO_BUF_WORDS];	//Buffer of unsigned int
 };
 
+/*------Return file descriptor------*/
+int get_fd(struct bitio* bitio){
+	if(bitio == NULL)
+		return -1;
+	return bitio->bitio_fd;
+}
+
 /*------OPEN-----*/
 struct bitio*  bitio_open(const char* name, char mode){//I open the file which has the name is name, with a certain mode
 	struct bitio* ret = NULL;//Checks about name and mode
