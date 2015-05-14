@@ -1,3 +1,9 @@
+COSE DA SISTEMARE
+1- dato che il parametro -o viene ignorato deve essere modificato il file di main
+
+
+/*----------------------------------------------------------------------------*/
+
 ﻿hash table(char, id_padre, id)
 
 COMPRESSORE
