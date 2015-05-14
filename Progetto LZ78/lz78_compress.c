@@ -7,9 +7,11 @@
 
 //Fuction to add the header to compressed file. It asks these parameteres: dictionary size, input and output files, file descriptor of output file and metadata
 int add_header(int dictionary_size, char* in_file, char* out_file, int fd, struct stat* meta_data){
-
+	ssize_t write_ret;
+	
 	unsigned char* write_buff=(unsigned char*)calloc(SIZE_BUFF,sizeof(unsigned char));//The write buffer
-	if(meta_data==NULL || write_buff==NULL) exit(0);
+	if(meta_data==NULL || write_buff==NULL) 
+		exit(0);
 
 	int size_name_file=strlen(in_file);//This function doesn't count the termination character
 	//header size is needed to know for the write function how many bytes to write.
@@ -45,10 +47,10 @@ int add_header(int dictionary_size, char* in_file, char* out_file, int fd, struc
 
 	//Only the first field has dimension can be variable, the others are always constant.
 
-	return write(fd,write_buff,header_size);
-	free(meta_data);
+	write_ret = write(fd,write_buff,header_size);
+	
 	free(write_buff);
-	free(in_file);
+	return  write_ret;
 }
 
 int compute_bit_len(int num){
@@ -125,11 +127,13 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	stat(input_file, &st);
 	int size = st.st_size;
 	int total_read_char = 0;
-	//Before to compress, I add the header
+	
+	//Before to compress, add the header
 	if(add_header(dictionary_size, input_file,output_file, get_fd(output), &st)<0){
-	printf("ERROR DURING WRITING HEADER FILE\n");
-	return -1;
+		printf("ERROR DURING WRITING HEADER FILE\n");
+		return -1;
 	}
+	
 	do{
 		if(start){
 			readed_byte=getc(input);
