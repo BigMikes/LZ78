@@ -7,21 +7,24 @@
 
 //Fuction to add the header to compressed file. It asks these parameteres: dictionary size, input and output files, file descriptor of output file and metadata
 int add_header(int dictionary_size, char* in_file, char* out_file, int fd, struct stat* meta_data){
+	int size_name_file;
+	int header_size;
+	unsigned char* ptr_w;
 	ssize_t write_ret;
 	
 	unsigned char* write_buff=(unsigned char*)calloc(SIZE_BUFF,sizeof(unsigned char));//The write buffer
 	if(meta_data==NULL || write_buff==NULL) 
 		exit(0);
 
-	int size_name_file=strlen(in_file);//This function doesn't count the termination character
+	size_name_file=strlen(in_file);//This function doesn't count the termination character
 	//header size is needed to know for the write function how many bytes to write.
-	int header_size=size_name_file+sizeof(dictionary_size)+sizeof(meta_data->st_atime)+sizeof(meta_data->st_mtime)+sizeof(meta_data->st_size);
+	header_size=size_name_file+sizeof(dictionary_size)+sizeof(meta_data->st_atime)+sizeof(meta_data->st_mtime)+sizeof(meta_data->st_size);
 
 	//I get the information from the file where I read from
 	stat(in_file,meta_data); //Example file: the actual file will be the file where the datas are compressed from
 
 	//First field: lenght of name file. I put in the buffer and then I shift the pointer to the buffer.
-	unsigned char* ptr_w=write_buff;
+	ptr_w=write_buff;
 	memcpy(write_buff,&size_name_file,sizeof(size_name_file));//Variable size
 	ptr_w+=sizeof(size_name_file);
 
