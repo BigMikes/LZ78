@@ -1,4 +1,3 @@
-//sei un finocchio
 #include "lz78.h"
 
 #define ONE 1
@@ -56,6 +55,44 @@ int add_header(int dictionary_size, char* in_file, char* out_file, int fd, struc
 	return  write_ret;
 }
 
+int add_digest(char* output_file, int verbose){
+	int i;
+	unsigned char data[1024];
+	unsigned int digest_size = 32;
+	unsigned char hash[digest_size];
+	int read_bytes;
+	FILE* output_sha;
+	
+	output_sha = fopen(output_file, "a+");
+	if(output_sha==NULL){
+		printf("Impossible to reopen output file.\n");
+		return -1;
+	}
+	
+	EVP_MD_CTX sha_ctx;
+	EVP_MD_CTX_init(&sha_ctx);
+	
+	EVP_DigestInit(&sha_ctx, EVP_sha256());
+	
+	while( ( read_bytes = fread(data, 1, 1024, output_sha) ) != 0 ){
+		EVP_DigestUpdate(&sha_ctx, data, read_bytes);
+	}
+	EVP_DigestFinal(&sha_ctx, hash, &digest_size);
+	
+	EVP_MD_CTX_cleanup(&sha_ctx);
+
+	if(verbose){	//this step is not necessary but it's usefull if verbose isn't needed
+		for(i = 0 ; i <= 32 ; i++)
+			printv(verbose, "%02x", hash[i]);
+		printv(verbose, "\n");
+	}
+	fwrite(hash, 1, 32, output_sha);
+	
+	fclose(output_sha);
+	
+	return 0;
+}
+
 int compute_bit_len(int num){
 	int bits = 8;
 	int bound = 256;
@@ -70,7 +107,6 @@ int compute_bit_len(int num){
 	}
 	return 32;
 }
-
 
 /*Writes the encoding of the tree node on the file
 * Input param: File descriptor, dimension of the tree (needed for know how many bits it have to read), and the node id to write
@@ -180,12 +216,13 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 		
 	} while(1);
 	
-	
-	/*---------format file----------------------------------------------------*/
-	
 	/*---------closing--------------------------------------------------------*/
 	free_ht(hashtable);
 	fclose(input);
 	bitio_close(output);
+	if(add_digest(output_file, verbose) < 0){
+		return -1;
+	}
+	
 	return 1;
 }
