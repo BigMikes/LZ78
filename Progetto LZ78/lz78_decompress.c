@@ -6,6 +6,7 @@ struct node{
 };
 
 
+
 int compute_bit_length(int num){
 	int bits = 8;
 	int bound = 256;
@@ -113,9 +114,96 @@ void clear_tree(struct node* tree, int tree_max_size){
 }
 
 
-int decompressor(char* input_file, char* output_file, int dictionary_size, int verbose_mode){
+/*
+* Gets the metadata from the header. Opens the output file and sets its metadata.
+* Returns -1 if some error occurs, or if the user decides to not decompress the file.
+* Otherwise returns the dimention of the dictoriary
+*/
+int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, struct utimbuf* timestamps){
+	unsigned char* header;
+	int dim_header;
+	int name_len;
+	int error;
+	char response;
+	int dict_size;
+	time_t la_time;
+	time_t lm_time;
+	int temp = 0;
+	
+	//Reads the file name dimention (it will be the only variable field)
+	error = read(input_fd, &name_len, sizeof(int));
+	if(error != sizeof(int))
+		return -1;
+	
+	//Computes the dimention of entire header (two integers for dict_size and original_file_size, and two time_t)
+	dim_header = name_len + 2 * sizeof(int) + 2 * sizeof(time_t);
+	
+	//Allocates the buffer for the header
+	header = malloc(dim_header);
+	if(header == NULL){
+		return -1;		
+	}
+	
+	/*DEBUG*/ printf("%s\n", header);
+	
+	//Reads all the header 
+	error = read(input_fd, header, dim_header);
+	if(error != dim_header){
+		free(header);
+		return -1;
+	}
+	
+	/*---Ask to the user if he/she wants to continue---*/
+	memcpy(orig_file_dim, header + (dim_header - sizeof(int)), sizeof(int)); 
+	printf("Do you want decompress %i bytes (yes/no): ", *orig_file_dim); 
+	error = scanf("%c", &response);			//Temporanea, serve per rimuovere dal buffer di input il '\n' inserito dall'utente nel main
+	error = scanf("%c", &response);
+	if(response == 'n' || error == EOF){
+		printf("\nOk, I'm terminating\n");
+		free(header);
+		return -1;
+	}
+	
+	/*---Parse the content of the header---*/
+	
+	//Parse file name
+	*output_file = malloc(name_len);
+	if(*output_file == NULL){
+		free(header);
+		return -1;
+	}
+	memcpy(*output_file, header, name_len);
+	temp += name_len;	
+	
+	printf("File name = %s\n", *output_file);
+		
+	//Parse the dictionary size
+	memcpy(&dict_size, header + temp, sizeof(int));	
+	temp += sizeof(int);
+	
+	printf("Dict Size = %i\n", dict_size);
+	
+	//Parse the last access time and last modification time
+	memcpy(&la_time, header + name_len + sizeof(int), sizeof(time_t));
+	temp += sizeof(time_t);
+	memcpy(&lm_time, header + name_len + sizeof(time_t) + sizeof(int), sizeof(time_t));
+	temp += sizeof(time_t);
+	
+	//Store the access time and modification time
+	timestamps->actime = la_time;
+	timestamps->modtime = lm_time;
+	
+	free(header);
+	return dict_size;
+}
+
+
+
+int decompressor(char* input_file, int verbose_mode){
 	struct bitio* input;
+	char* output_file;
 	FILE* output;
+	int dictionary_size;
 	struct node* tree;
 	int tree_max_size = 256;
 	int tree_size = 256;	//First id starts from 257
@@ -123,6 +211,8 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 	int old_node_id; 
 	char* partial_string;
 	int string_len;
+	struct utimbuf* timestamps;
+	int orig_file_size; 				/*---Dimention of decompressed file---*/
 	
 	//Open the compressed file
 	input = bitio_open(input_file, 'r');
@@ -130,16 +220,26 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 		printf("Error with input file. You are sure that exists?\n");
 		return -1;
 	}
+	
+	//Collect information from the header
+	timestamps = malloc(sizeof(struct utimbuf));
+	dictionary_size = get_info_from_header(get_fd(input), &output_file, &orig_file_size, timestamps);
+	if(dictionary_size == -1){
+		bitio_close(input);
+		return -1;
+	}
+	
 	//Open the (decompressed) output file
 	output = fopen(output_file, "w");	
-	if(output<0){
+	if(output == NULL){
 		printf("Impossible to open output file.\n");
 		return -1;
 	}
+	
 	//Allocate the tree structure
 	tree_max_size += dictionary_size; 						//dictionary size = 300 per ora, poi da leggere dall'header
 	tree = (struct node*)calloc(tree_max_size, sizeof(struct node));
-	partial_string = (char*)malloc( tree_max_size * sizeof(char) );
+	partial_string = (char*)malloc( tree_max_size * sizeof(char));
 	//Initialization the firt layer of the tree
 	init_tree(tree);
 	old_node_id = -1;
@@ -172,10 +272,17 @@ int decompressor(char* input_file, char* output_file, int dictionary_size, int v
 	}
 	while(1);
 	
+	
 	fflush(output);
 	fclose(output);
 	bitio_close(input);
+	
+	//Given the access time and modification time updates the metadata of the output file
+	utime(output_file, timestamps);
+	
 	free(tree);
-	free(partial_string);	
+	free(partial_string);
+	free(output_file);
+	free(timestamps);	
 	return 1;	
 }

@@ -199,7 +199,7 @@ int main(int argc, char* argv[]){
 	if(param.mode==1)
 		ret = compressor(param.input_file, param.output_file, param.dict_size, param.verbose);
 	else
-		ret = decompressor(param.input_file, param.output_file, param.dict_size, param.verbose);
+		ret = decompressor(param.input_file, param.verbose);
 	
 	if(ret<0){
 		printf("some error\n");

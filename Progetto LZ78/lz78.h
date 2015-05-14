@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdarg.h>
 #include <sys/stat.h>
+#include <utime.h>
+
 
 /*---------SHARED RESOURCE----------*/ 
 void printv(int verbosity, const char *format, ...);
@@ -15,4 +17,4 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 
 
 /*---------Decompress functions------*/
-int decompressor(char* input_file, char* output_file, int dictionary_size, int verbose_mode);
+int decompressor(char* input_file, int verbose_mode);
