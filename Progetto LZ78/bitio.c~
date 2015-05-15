@@ -1,6 +1,7 @@
 #include "bitio.h"
 #define BITIO_BUF_WORDS 512
 
+/*Bitio data structure*/
 struct bitio{
 	int bitio_fd;//File descriptor	
 	char bitio_mode;//Mode: read 'r', write 'w' and so on.
@@ -8,7 +9,15 @@ struct bitio{
 	uint64_t buf[BITIO_BUF_WORDS];	//Buffer of unsigned int
 };
 
+/*------Return file descriptor------*/
+int get_fd(struct bitio* bitio){
+	if(bitio == NULL)
+		return -1;
+	return bitio->bitio_fd;
+}
+
 /*------OPEN-----*/
+//Open the file that will be either read or write. It returns the data structure if all goes good, otherwise 0.
 struct bitio*  bitio_open(const char* name, char mode){//I open the file which has the name is name, with a certain mode
 	struct bitio* ret = NULL;//Checks about name and mode
 	if(name == NULL || (mode != 'r' && mode != 'w')){
@@ -39,18 +48,21 @@ fail:
 }
 
 /*----- FLUSH -----*/
+
 int bitio_flush(struct bitio* b){//If the mode isn't write mode, error.
 	if(b == NULL || b->bitio_mode != 'w' || b->bitio_fd < 0){
 		errno = EINVAL;
 		return -1;
 	}
 	//Computes the number of aligned bits (remember that you can store a char, that is 8 bits, not less)
-	int len_bytes = b->bitio_wp / 8;
+	int len_bytes = b->bitio_wp / 8;//Compute the bytes number
 	if(len_bytes == 0){
 		return 0;
 	}
 	char* start = (char*)b->buf;//The first byte to flush
 	int left = len_bytes;// Number of bytes to store
+
+	//Write until there are something to write
 	for(;;){
 		int x;
 		x = write(b->bitio_fd, start, left);	
@@ -59,11 +71,11 @@ int bitio_flush(struct bitio* b){//If the mode isn't write mode, error.
 		}
 		left -= x;
 		start += x;
-		if(left == 0){//I write a char at time. Each time I decrease left from x (the number of char to write) and increase start to x (the offset).
+		if(left == 0){
 			break;
 		}
 	}
-	char* dst;
+	char* dst=NULL;
 	if(b->bitio_wp % 8 != 0){//If there are some unaligned bits, put that at the top of the buffer
 		dst = (char*)(b->buf);	//Pointer to the head of buffer
 		dst[0] = start[0];//start[0] will contain the unaligned bits
@@ -86,19 +98,21 @@ fail:
 }
 
 /*----- READ ----*/
+//This function read the bytes from file and put them in the buffer.
 int bitio_read(struct bitio* b){
 	uint64_t d;
 	int x;
 	int pos, ofs;
+	//Some checks
 	int dim_of_a_word = sizeof(b->buf[0]) * 8;	
 	if(b == NULL || b->bitio_mode != 'r' || b->bitio_fd < 0){//Check on b, read mode and fd.
 		errno = EINVAL;
 		return -1;
 	}
 	if(b->bitio_rp == b->bitio_wp){//If the read and write pointer are in the same position they assume position 0
-		b->bitio_rp = b->bitio_wp = 0;
+		b->bitio_rp = b->bitio_wp = 0;//Initally the buffer is completly empty
 		for(;;){
-			x = read(b->bitio_fd, b->buf, sizeof(b->buf));
+			x = read(b->bitio_fd, b->buf, sizeof(b->buf));//I read from the file. 
 			if(x < 0)
 				return -1;
 			else if(x == 0){
@@ -196,10 +210,12 @@ int bitio_read_chunk(struct bitio* b, uint64_t* buf, int dim){
 
 
 /*------ WRITE -----*/
+//This function returns 0 if the write is done correctly returns 0, otherwise -1. 
 int bitio_write(struct bitio *b, int x){
 	int pos, ofs;
 	uint64_t d;
 	int dim_of_a_word = sizeof(b->buf[0]) * 8;
+	//Some checks
 	if(b == NULL || b->bitio_mode != 'w' || b->bitio_fd < 0){
 		errno = EINVAL;
 		return -1;
@@ -209,6 +225,7 @@ int bitio_write(struct bitio *b, int x){
 		if(status < 0)
 			return -1;		
 	}
+
 	pos = b->bitio_wp / dim_of_a_word;
 	ofs = b->bitio_wp % dim_of_a_word;
 	d = htole64(b->buf[pos]);
@@ -274,8 +291,9 @@ int bitio_write_chunk(struct bitio *b, uint64_t x, int dim){
 	return dim;
 }
 
-
+//Function that closes the file descriptor. It returns 0 if all goes well, otherwise -1.
 int bitio_close(struct bitio* b){
+//Some checks
 	if(b == NULL || b->bitio_fd < 0){
 		errno = EINVAL;
 		return -1;
