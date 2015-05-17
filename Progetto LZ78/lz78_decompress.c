@@ -197,7 +197,88 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	return dict_size;
 }
 
+int check_digest(char* input_file, int verbose){
+	//VARIABLES
+	//generic
+	int i, n;
+	
+	//hash generation
+	EVP_MD_CTX sha_ctx;
+	unsigned char data[1024];
+	unsigned int digest_size = 32;
+	unsigned char hash_new[digest_size];
+	unsigned char hash_old[digest_size];
+	int read_bytes, total_read_bytes;
+	
+	//file stream
+	FILE* input_sha;
+	
+	//info
+	struct stat st;
+	int cipher_size;
+	
+	//open file in reading only mode
+	input_sha = fopen(input_file, "r");
+	if(input_sha==NULL){
+		printf("Impossible to open input file.\n");
+		return -1;
+	}
+	
+	//cipher file size
+	stat(input_file, &st);
+	cipher_size = st.st_size;
+	// the file is cipher_size long and the hash_old is at (cipher_size-32)
+	
+	//evaluate new hash
+	EVP_MD_CTX_init(&sha_ctx);
+	
+	EVP_DigestInit(&sha_ctx, EVP_sha256());
+	
+	total_read_bytes = 0;
+	n = cipher_size / sizeof(data);
+	if(cipher_size % sizeof(data) < 32 && n != 0){
+		n -= 1;
+	}
+	//read files at block until last block of at least 32 bytes
+	for(i = 0 ; i < n ; i++){
+		read_bytes = fread(data, 1, 1024, input_sha);
+		total_read_bytes += read_bytes;
+		EVP_DigestUpdate(&sha_ctx, data, read_bytes);
 
+	}
+	//read residual data
+	read_bytes = fread(data, 1, cipher_size - total_read_bytes - 32, input_sha);
+	EVP_DigestUpdate(&sha_ctx, data, read_bytes);
+	
+	EVP_DigestFinal(&sha_ctx, hash_new, &digest_size);
+	
+	EVP_MD_CTX_cleanup(&sha_ctx);
+	
+	if(verbose){
+		printv(verbose, "New evaluated hash:\n");
+		for(i = 0 ; i <= 32 ; i++)
+			printv(verbose, "%02x", hash_new[i]);
+		printv(verbose, "\n");
+	}
+	
+	//read hash_old
+	read_bytes = fread(hash_old, 1, digest_size, input_sha);	//se tutto funziona bene 32 è quello che rimane
+	if(verbose){
+		printv(verbose, "Old hash:\n");
+		for(i = 0 ; i <= 32 ; i++)
+			printv(verbose, "%02x", hash_old[i]);
+		printv(verbose, "\n");
+	}
+	if(CRYPTO_memcmp(hash_new, hash_old, digest_size) != 0){
+		printf("Corrupted file.\n\n");
+		return -1;
+	}
+	printf("Untouched file.\n\n");
+	
+	fclose(input_sha);
+	
+	return 0;
+}
 
 int decompressor(char* input_file, int verbose_mode){
 	struct bitio* input;
@@ -213,6 +294,11 @@ int decompressor(char* input_file, int verbose_mode){
 	int string_len;
 	struct utimbuf* timestamps;
 	int orig_file_size; 				/*---Dimention of decompressed file---*/
+	
+	//check digest
+	if(check_digest(input_file, verbose_mode) < 0){
+		return -1;
+	}
 	
 	//Open the compressed file
 	input = bitio_open(input_file, 'r');
@@ -237,7 +323,7 @@ int decompressor(char* input_file, int verbose_mode){
 	}
 	
 	//Allocate the tree structure
-	tree_max_size += dictionary_size; 						//dictionary size = 300 per ora, poi da leggere dall'header
+	tree_max_size += dictionary_size;
 	tree = (struct node*)calloc(tree_max_size, sizeof(struct node));
 	partial_string = (char*)malloc( tree_max_size * sizeof(char));
 	//Initialization the firt layer of the tree
