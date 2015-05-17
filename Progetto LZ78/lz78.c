@@ -173,10 +173,11 @@ int main(int argc, char* argv[]){
 	
 /*--------confirmation--------------------------------------------------------*/	
 	
-	
 	printf("Input file: %s\n", param.input_file);
-	printf("Output file: %s\n", param.output_file);
-	printf("Dictionary size: %i\n", param.dict_size);
+	if(param.mode==1){
+		printf("Output file: %s\n", param.output_file);
+		printf("Dictionary size: %i\n", param.dict_size);
+	}
 	printf("correct: y/n?\n");
 	ret = scanf("%c", &response);
 	switch(response){
