@@ -294,6 +294,7 @@ int decompressor(char* input_file, int verbose_mode){
 	int string_len;
 	struct utimbuf* timestamps;
 	int orig_file_size; 				/*---Dimention of decompressed file---*/
+	int writed_byte = 0;
 	
 	//check digest
 	if(check_digest(input_file, verbose_mode) < 0){
@@ -338,7 +339,11 @@ int decompressor(char* input_file, int verbose_mode){
 		//Extract the string from the tree 
 		retrieve_string(verbose_mode, tree, node_id, partial_string, &tree_max_size, &string_len);
 		printv(verbose_mode, "Stampo stringa = %.*s\n", string_len, partial_string + (tree_max_size - string_len));
-		fwrite (partial_string + (tree_max_size - string_len), sizeof(char), string_len, output);
+		writed_byte += fwrite (partial_string + (tree_max_size - string_len), sizeof(char), string_len, output);
+		
+		//loadbar
+		loadBar(!verbose_mode, writed_byte, orig_file_size, 40, 40);
+		
 		//Update the symbol of the old entry 
 		if(old_node_id > 0){					//This check is needed for the first cycle, where there are no entry to update.
 			tree[old_node_id].symbol = partial_string[tree_max_size - string_len];
