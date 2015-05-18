@@ -6,6 +6,8 @@
 #include <utime.h>
 #include <openssl/evp.h>
 
+/*---------CONSTANT-----------------*/
+#define MIN_DIM_DICT 10
 
 /*---------SHARED RESOURCE----------*/ 
 void printv(int verbosity, const char *format, ...);

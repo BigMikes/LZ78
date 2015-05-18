@@ -363,16 +363,16 @@ int decompressor(char* input_file, int verbose_mode){
 	}
 	while(1);
 	
-	
+
 	fflush(output);
 	fclose(output);
-	bitio_close(input);
+	//bitio_close(input);
 	
 	//Given the access time and modification time updates the metadata of the output file
 	utime(output_file, timestamps);
 	
-	free(tree);
 	free(partial_string);
+	free(tree);
 	free(output_file);
 	free(timestamps);	
 	return 1;	

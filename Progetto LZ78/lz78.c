@@ -158,8 +158,9 @@ int main(int argc, char* argv[]){
 	if(!param.s_set){
 		param.dict_size = (int)UINT16_MAX;
 	} else {
-		if(param.dict_size<0){						//non penso possa capitare un numero upperbound????
-			printf("out of bound value\n");
+		if(param.dict_size <= MIN_DIM_DICT){						//non penso possa capitare un numero upperbound????
+			printf("Out of bound value for dictionary\n");
+			return 0;
 		}
 	}
 	
@@ -184,15 +185,15 @@ int main(int argc, char* argv[]){
 		case 'y':
 		case 'Y':
 			if(param.mode==1){	//compressore
-				printf("start encoding\n");
+				printf("Start encoding\n");
 			} else {
-				printf("start decoding\n");
+				printf("Start decoding\n");
 			}
 			break;
 		case 'n':
 		case 'N':
 		default:
-			printf("abort\n");
+			printf("Abort\n");
 			return 0;
 	}
 	
@@ -203,13 +204,12 @@ int main(int argc, char* argv[]){
 		ret = decompressor(param.input_file, param.verbose);
 	
 	if(ret<0){
-		printf("some error\n");
 		return 0;
 	}
 	if(param.mode==1){	//compressore
-		printf("encoding done\n");
+		printf("Encoding done\n");
 	} else {
-		printf("decoding done\n");
+		printf("Decoding done\n");
 	}
 	//se cerchi il codice di test della hash table te l'ho spostato in testhashtable.c
 	return 0;
