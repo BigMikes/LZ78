@@ -66,7 +66,7 @@ void retrieve_string(int verbose_mode, struct node* tree, int node_id, char* par
 	int previous_id = node_id;
 	
 	//reset strings
-	memset(partial_string, 0, *size_array * sizeof(char));
+	//memset(partial_string, 0, *size_array * sizeof(char));
 	
 	printv(verbose_mode, "Risalgo l'albero dal nodo %i\n", node_id);
 	while(1){
