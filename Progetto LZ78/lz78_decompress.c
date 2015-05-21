@@ -5,7 +5,19 @@ struct node{
 	char symbol;
 };
 
-
+int compute_bit_len(int num, int* bit_len, int* bound){
+	//max encoding bit dimention = 32.
+	if(*bit_len < 32){
+		if(num < *bound)
+			return *bit_len;
+		else{
+			*bound *= 2;
+			*bit_len += 1;
+			return *bit_len;
+		}
+	}
+	return 32;
+}
 
 
 /*Reads the encoding of the tree node from the file
@@ -346,6 +358,8 @@ int decompressor(char* input_file, int verbose_mode){
 			tree_size = 256;
 			clear_tree(tree, tree_max_size);
 			old_node_id = -1;
+			bound = 256;
+			bit_len = 8;
 		}
 	}
 	while(1);
