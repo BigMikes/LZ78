@@ -254,28 +254,19 @@ int bitio_write_chunk(struct bitio *b, uint64_t x, int dim){
 	pos = b->bitio_wp / dim_of_a_word;
 	ofs = b->bitio_wp % dim_of_a_word;
 	d = htole64(b->buf[pos]);
-	//controllo che il numero di bit che voglio scrivere ci stia all'interno della locazione di memoria
-	if(ofs + dim <= dim_of_a_word){
-		//se il numero di bit da scrivere sono esattamente 64, cioè il massimo, allora devo avere una maschera con tutti i bit a 1, cioè il complemento di 0
-		mask = (dim == 64)?~(uint64_t)0:((uint64_t)1 << dim) - 1;
-		//scrivo tutto nella locazione di memoria indicata da pos
-		clear = d & ~(mask << ofs);					//clear	
-		d = clear | ((x & mask) << ofs);				//se
-		b->buf[pos] = htole64(d);
-		b->bitio_wp += dim;
-	}
-	else{
-		//mi salvo in due variabili temporanee la parte di bit da scrivere nella locazione corrente
-		//e l'altra parte di bit da scrivere nella locazione 'pos+1'
-		unaligned = ofs + dim - dim_of_a_word;
-		num_of_bits = dim - unaligned;
-		//1st step
-		mask = ((uint64_t) 1 << num_of_bits) - 1;
-		temp = x >> num_of_bits;
-		clear = d & ~(mask << ofs);					//clear	
-		d = clear | ((x & mask) << ofs);				//set
-		b->buf[pos] = htole64(d);
-		b->bitio_wp += num_of_bits;
+
+	//mi salvo in due variabili temporanee la parte di bit da scrivere nella locazione corrente
+	//e l'altra parte di bit da scrivere nella locazione 'pos+1'
+	unaligned = (dim + ofs <= dim_of_a_word) ? 0 : ofs + dim - dim_of_a_word;
+	num_of_bits = dim - unaligned;
+	//1st step
+	mask = (num_of_bits == 64)?~(uint64_t)0:((uint64_t)1 << num_of_bits) - 1;
+	temp = x >> num_of_bits;
+	clear = d & ~(mask << ofs);					//clear	
+	d = clear | ((x & mask) << ofs);				//set
+	b->buf[pos] = htole64(d);
+	b->bitio_wp += num_of_bits;
+	if(unaligned > 0){
 		//2nd step
 		//aggiorno il puntatore della locazione di memoria
 		pos = b->bitio_wp / dim_of_a_word;
