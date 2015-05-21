@@ -22,3 +22,4 @@ uint32_t insert(hashtable_t* ht, char symbol, uint32_t father_id);
 void print_ht(hashtable_t* ht); 				//For debug purpose
 void free_ht(hashtable_t* ht);
 int get_num_records(hashtable_t* ht);
+int get_bit_len(hashtable_t* ht);

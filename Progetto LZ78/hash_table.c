@@ -15,6 +15,8 @@ struct hashtable_s{
 	int num_records;			//Number of present records in the table
 	uint32_t hash_start_value;		//It will contain the Benrstein's magic number 5381 mixed with a random number
 	entry_t **table;			//It will be an array of pointers to entry_t elements, the reason to keep memory to the minimum required
+	int bit_len;
+	int bound;
 };
 
 
@@ -73,6 +75,8 @@ hashtable_t* create_hash_table(int dict_size){
 	ret->size = size;
 	ret->num_records = 0;
 	ret->hash_start_value = 5381;
+	ret->bit_len = 8;
+	ret->bound = 256;
 	//Seed the random number generator (used in hash value generation)
 	srand(time(NULL));			
 	
@@ -102,6 +106,9 @@ void restart_ht(hashtable_t* ht){
 		free(node);
 		ht->table[i] = NULL;
 	}
+	
+	ht->bit_len = 8;
+	ht->bound = 256;
 	
 	fill_first_layer(ht);
 }
@@ -259,4 +266,21 @@ int get_num_records(hashtable_t* ht){
 		return -1;
 	
 	return ht->num_records;
+}
+//Returns the number of bits needed to represent the node_id
+int get_bit_len(hashtable_t* ht){
+	if(ht == NULL)
+		return -1;
+	//max encoding bit dimention = 32.
+	if(ht->bit_len < 32){
+		if(ht->num_records < ht->bound)
+			return ht->bit_len;
+		else{
+			ht->bound *= 2;
+			ht->bit_len += 1;
+			return ht->bit_len;
+		}
+	}
+	return 32;	
+	
 }
