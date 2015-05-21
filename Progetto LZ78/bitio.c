@@ -176,24 +176,17 @@ int bitio_read_chunk(struct bitio* b, uint64_t* buf, int dim){
 	pos = b->bitio_rp / dim_of_a_word;
 	ofs = b->bitio_rp % dim_of_a_word;
 	d = le64toh(b->buf[pos]);
-	//controllo se i bit da leggere sono tutti nella locazione di memoria puntata o se una parte è nella locazione successiva
-	if(dim + ofs <= dim_of_a_word){
-		mask = (dim == 64)?~(uint64_t)0:((uint64_t)1 << dim) - 1;
-		//shiftando la maschera di bit ad 1 estraggo da 'd' i bit che mi servono, li ri-shifto verso destra per mettere il bit meno significativo
-		//nella posizione meno significativa del buffer da passare al chiamante  
-		*buf = (d & (mask << ofs)) >> ofs;
-		b->bitio_rp += dim;
-	}
-	else{
-		//calcolo il numero di bit che dovrò leggere dalla locazione di memoria successiva
-		unaligned = ofs + dim - dim_of_a_word;
-		//calcolo il numero di bit che invece leggo dalla locazione attuale
-		num_of_bits = dim - unaligned;
-		//1st step
-		mask = ((uint64_t) 1 << num_of_bits) - 1;
-		//salvo in una variabile temporanea i bit letti, che andranno concatenati come meno significativi ai bit letti dopo
-		temp = (d & (mask << ofs)) >> ofs;
-		b->bitio_rp += num_of_bits;
+	
+	//calcolo il numero di bit che dovrò, eventualmente, leggere dalla locazione di memoria successiva
+	unaligned = (dim + ofs <= dim_of_a_word) ? 0 : ofs + dim - dim_of_a_word;
+	//calcolo il numero di bit che invece leggo dalla locazione attuale
+	num_of_bits = dim - unaligned;
+	//1st step
+	mask = (num_of_bits == 64)?~(uint64_t)0:((uint64_t)1 << num_of_bits) - 1;
+	//salvo in una variabile temporanea i bit letti, che andranno concatenati come meno significativi ai bit letti dopo
+	temp = (d & (mask << ofs)) >> ofs;
+	b->bitio_rp += num_of_bits;
+	if(unaligned > 0){
 		//2nd step
 		errors = fill_buffer(b);
 		if(errors == -1)
@@ -206,6 +199,8 @@ int bitio_read_chunk(struct bitio* b, uint64_t* buf, int dim){
 		*buf = temp | ((d & mask) << num_of_bits);
 		b->bitio_rp += unaligned;
 	}
+	else
+		*buf = temp;	
 	return dim;
 }
 
