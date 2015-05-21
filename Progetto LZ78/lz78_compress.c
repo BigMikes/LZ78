@@ -4,10 +4,18 @@
 #define SIZE_BUFF 284//256 (max lenght of name_file) + 28(sum of constant dimension of other fields)
 #define MAX_LEN_NAME_FILE 256
 
+//This function return the first position in the buffer in which is possible to write
+unsigned char* add_and_shift(unsigned char* ptr_w, const void* src, size_t size_src){
+//printf("Size to put into dictionary: %d\n",(int) size_src); DEBUG PRINT
+memcpy(ptr_w,src,size_src);
+ptr_w+=size_src;
+return ptr_w;
+}
+
 //Fuction to add the header to compressed file. It asks these parameteres: dictionary size, input and output files, file descriptor of output file and metadata
 int add_header(int dictionary_size, char* in_file, char* out_file, int fd, struct stat* meta_data){
-	int size_name_file;
 	int header_size;
+	int lenght_file_name=strlen(in_file);
 	unsigned char* ptr_w;
 	ssize_t write_ret;
 	
@@ -15,40 +23,18 @@ int add_header(int dictionary_size, char* in_file, char* out_file, int fd, struc
 	if(meta_data==NULL || write_buff==NULL) 
 		exit(0);
 
-	size_name_file=strlen(in_file);//This function doesn't count the termination character
 	//header size is needed to know for the write function how many bytes to write.
-	header_size=size_name_file+sizeof(dictionary_size)+sizeof(meta_data->st_atime)+sizeof(meta_data->st_mtime)+sizeof(meta_data->st_size);
-
+	header_size=lenght_file_name+sizeof(dictionary_size)+sizeof(meta_data->st_atime)+sizeof(meta_data->st_mtime)+sizeof(meta_data->st_size);
 	//I get the information from the file where I read from
 	stat(in_file,meta_data); //Example file: the actual file will be the file where the datas are compressed from
 
-	//First field: lenght of name file. I put in the buffer and then I shift the pointer to the buffer.
 	ptr_w=write_buff;
-	memcpy(write_buff,&size_name_file,sizeof(size_name_file));//Variable size
-	ptr_w+=sizeof(size_name_file);
-
-	//Second field: filename. I put in the buffer and then I shift the pointer to the buffer. //Then is shifted depending on the real lenght of file name.
-	ptr_w=memcpy(ptr_w,in_file,size_name_file);
-	ptr_w+=size_name_file;
-
-	//Third field: dictionary size.
-	memcpy(ptr_w,&dictionary_size,sizeof(dictionary_size));//I copy the dictionary size in the buffer
-	ptr_w+=sizeof(dictionary_size);
-
-	//Fourth field: last access time.
-	memcpy(ptr_w,&(meta_data->st_atime),sizeof(meta_data->st_atime));
-	ptr_w+=sizeof(meta_data->st_atime);
-
-	//Fifth field: last modification time.
-	memcpy(ptr_w,&(meta_data->st_mtime),sizeof(meta_data->st_mtime));//I copy the last modification date on the buffer, then is shifted
-	ptr_w+=sizeof(meta_data->st_mtime);
-
-
-	//Sixth field: I copy the size file in byte on the buffer.
-	memcpy(ptr_w,&(meta_data->st_size),sizeof(meta_data->st_size));
-
-	//Only the first field has dimension can be variable, the others are always constant.
-
+	ptr_w=add_and_shift(ptr_w, &lenght_file_name, sizeof(lenght_file_name));        //1st field: I put the lenght of the file name. It's always an integer
+	ptr_w=add_and_shift(ptr_w, in_file, strlen(in_file));     //2nd field: filename. //Then is shifted depending on the real lenght of file name.
+	ptr_w=add_and_shift(ptr_w,&dictionary_size, sizeof(dictionary_size));	   //3rd field: dictionary size.
+	ptr_w=add_and_shift(ptr_w,&(meta_data->st_atime),sizeof(meta_data->st_atime)); //4th field: last access time.
+	ptr_w=add_and_shift(ptr_w,&(meta_data->st_mtime),sizeof(meta_data->st_mtime)); //5th field: last modfication time.
+	ptr_w=add_and_shift(ptr_w,&(meta_data->st_size),sizeof(meta_data->st_size));  //6th field: file size in byte.
 	write_ret = write(fd,write_buff,header_size);
 	
 	free(write_buff);
