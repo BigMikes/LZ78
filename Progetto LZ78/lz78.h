@@ -14,6 +14,7 @@ void printv(int verbosity, const char *format, ...);
 
 inline void loadBar(int verbose, int x, int n, int r, int w);
 
+int compute_bit_len(int num, int* bit_len, int* bound);
 
 /*---------Compress functions-------*/
 int compressor(char* input_file, char* output_file, int dictionary_size, int verbose_mode);

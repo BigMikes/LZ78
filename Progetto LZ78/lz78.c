@@ -14,6 +14,22 @@ struct parameters{
 	int s_set;
 };
 
+
+int compute_bit_len(int num, int* bit_len, int* bound){
+	//max encoding bit dimention = 32.
+	if(*bit_len < 32){
+		if(num < *bound)
+			return *bit_len;
+		else{
+			*bound *= 2;
+			*bit_len += 1;
+			return *bit_len;
+		}
+	}
+	return 32;
+}
+
+
 /* 		Process has done x out of n rounds,
  * 		and we want a bar of width w and resolution 
  */

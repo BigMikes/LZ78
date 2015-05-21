@@ -7,27 +7,12 @@ struct node{
 
 
 
-int compute_bit_length(int num){
-	int bits = 8;
-	int bound = 256;
-	//max encoding bit dimention = 32.
-	while(bits < 32){
-		if(num < bound)
-			return bits;
-		else{
-			bound *= 2;
-			bits++;
-		}
-	}
-	return 32;
-}
-
 
 /*Reads the encoding of the tree node from the file
 * Input param: File descriptor, dimension of the tree (needed for know how many bits it have to read)
 * Return: -1 if an error occurs, otherwise the node identifier
 */
-int read_node(int verbose_mode, struct bitio* fd, int tree_dim){
+int read_node(int verbose_mode, struct bitio* fd, int tree_dim, int* bit_len, int* bound){
 	uint64_t node_id;
 	int how_many; 
 	int ret;
@@ -35,7 +20,7 @@ int read_node(int verbose_mode, struct bitio* fd, int tree_dim){
 		return -1;
 	}
 	//compute the number of bits to read with logarithm in base 2
-	how_many = compute_bit_length(tree_dim);
+	how_many = compute_bit_len(tree_dim, bit_len, bound);
 	
 	//read the bits from the file 
 	ret = bitio_read_chunk(fd, &node_id, how_many);
@@ -295,7 +280,9 @@ int decompressor(char* input_file, int verbose_mode){
 	struct utimbuf* timestamps;
 	int orig_file_size; 				/*---Dimention of decompressed file---*/
 	int writed_byte = 0;
-	
+	int bound = 256;
+	int bit_len = 8;
+		
 	//check digest
 	if(check_digest(input_file, verbose_mode) < 0){
 		return -1;
@@ -332,7 +319,7 @@ int decompressor(char* input_file, int verbose_mode){
 	old_node_id = -1;
 	//Decompress
 	do{
-		node_id = read_node(verbose_mode, input, tree_size);
+		node_id = read_node(verbose_mode, input, tree_size, &bit_len, &bound);
 		//If the node is 0 we are at the end of the file
 		if(node_id == 0)
 			break;
