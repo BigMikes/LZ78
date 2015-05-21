@@ -1,6 +1,12 @@
 #include "bitio.h"
 #define BITIO_BUF_WORDS 512
 
+/*
+The bitio structure works, with its functions, if and only if the machine has a little endian system and the architecture is 64 bits. 
+The bits will be interpreted according to this endianess system.
+*/
+
+
 /*Bitio data structure*/
 struct bitio{
 	int bitio_fd;//File descriptor	
@@ -124,7 +130,7 @@ int bitio_read(struct bitio* b){
 			}
 		}
 	}
-//Fare schemino per capirlo meglio
+
 	pos = b->bitio_rp / dim_of_a_word;
 	ofs = b->bitio_rp % dim_of_a_word;
 	d = le64toh(b->buf[pos]);
