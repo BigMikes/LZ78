@@ -14,7 +14,7 @@ struct hashtable_s{
 	int size;				//Real dimention of hash table
 	int num_records;			//Number of present records in the table
 	uint32_t hash_start_value;		//It will contain the Benrstein's magic number 5381 mixed with a random number
-	entry_t **table;			//It will be an array of pointers to entry_t elements, the reason to keep memory to the minimum required
+	entry_t *table;				//It will be an array of entry_t elements, the reason to keep memory to the minimum required
 	int bit_len;
 	int bound;
 };
@@ -66,7 +66,7 @@ hashtable_t* create_hash_table(int dict_size){
 	//Gestire fattore di espansione, cioè fare una tabella maggiore rispetto al dizionario
 	size += dict_size;
 	
-	ret->table = calloc(size, sizeof(entry_t * ));
+	ret->table = calloc(size, sizeof(entry_t));
 	if(ret->table == NULL){
 		free(ret);
 		return NULL;
@@ -94,18 +94,13 @@ hashtable_t* create_hash_table(int dict_size){
 
 //Cleans the hash table and re-fill the first layer of the tree
 void restart_ht(hashtable_t* ht){
-	entry_t* node;
-	int i;
 	
 	if(ht == NULL)
 		return;
 	
 	ht->num_records = 0;
-	for(i = 0; i < ht->size; i++){
-		node = ht->table[i];
-		free(node);
-		ht->table[i] = NULL;
-	}
+	
+	memset(ht->table, 0, sizeof(entry_t) * ht->size);
 	
 	ht->bit_len = 8;
 	ht->bound = 256;
@@ -154,9 +149,10 @@ uint32_t search(hashtable_t* ht, char symbol, uint32_t father_id, int* find){
 	
 	hash_val = key_generation(ht, father_id, symbol);
 	
-	node = ht->table[hash_val];
+	node = &ht->table[hash_val];
 	
-	if(node == NULL){
+	//Checks if it is empty 
+	if(node->father_id == 0 && node->node_id == 0){
 		*find = 0;
 		return 0;
 	}
@@ -171,10 +167,10 @@ uint32_t search(hashtable_t* ht, char symbol, uint32_t father_id, int* find){
 		for(i = 0; i < ht->size; i++){
 			hash_val += 1;
 			hash_val = hash_val % ht->size;
-			node = ht->table[hash_val];
+			node = &ht->table[hash_val];
 			//If it meets an empty entry it does mean that such node can't exist at all
 			//otherwise it would be in this empty entry
-			if(node == NULL){
+			if(node->father_id == 0 && node->node_id == 0){
 				*find = 0;
 				return 0;
 			}	
@@ -203,21 +199,22 @@ uint32_t insert(hashtable_t* ht, char symbol, uint32_t father_id){
 		return 0;
 	}
 		
-	node = malloc(sizeof(entry_t));
+	hash_val = key_generation(ht, father_id, symbol);
+	
+	node = &ht->table[hash_val];
+	
+	//Checks if it is a collision
+	while(node->father_id != 0 || node->node_id != 0){
+		hash_val += 1;
+		hash_val = hash_val % ht->size;
+		node = &ht->table[hash_val];
+	}
+	
 	node->father_id = father_id;
 	node->symbol = symbol;
 	ht->num_records += 1;
 	node->node_id = ht->num_records;			//Increment the number of entry and use it as new node id
 	ret_value = node->node_id;
-		
-	hash_val = key_generation(ht, father_id, symbol);
-	
-	//Checks if it is a collision
-	while(ht->table[hash_val] != NULL){
-		hash_val += 1;
-		hash_val = hash_val % ht->size;
-	}
-	ht->table[hash_val] = node;
 	
 	if(ht->num_records == ht->size)
 		restart_ht(ht);
@@ -233,7 +230,7 @@ void print_ht(hashtable_t* ht){
 	if(ht == NULL)
 		return;
 	for(i = 0; i < ht->size; i++){
-		entry = ht->table[i];
+		entry = &ht->table[i];
 		if(entry != NULL)
 			fprintf(stderr,"Entry # = %i | Node id = %i | Symbol = %c | Father id = %i |\n", i, (int)entry->node_id, entry->symbol, (int)entry->father_id);
 		else
@@ -246,16 +243,10 @@ void print_ht(hashtable_t* ht){
 * Delete hash table entirely and its data structures
 */
 void free_ht(hashtable_t* ht){
-	entry_t* node;
-	int i;
 	
 	if(ht == NULL)
 		return;
 	
-	for(i = 0; i < ht->size; i++){
-		node = ht->table[i];
-		free(node);
-	}
 	free(ht);
 	
 }
