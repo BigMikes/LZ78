@@ -1,0 +1,2 @@
+aggiungere opzione -t (terminale)
+	se abilitata non viene richiesta nessuna interazione con l'utente
