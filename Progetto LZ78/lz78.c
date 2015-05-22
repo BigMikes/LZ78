@@ -55,7 +55,7 @@ void printv(int verbosity, const char *format, ...){
     va_start(args, format);
 
     if (verbosity){
-        vfprintf (stdout, format, args);
+        vfprintf (stderr, format, args);
 	}
 	va_end(args);
 }
@@ -71,7 +71,7 @@ void help(){
 		-s \"<size>\"............: dictionary size \n\
 		-h ....................: this helper\n";
         
-	printf("%s", options_msg);		
+	fprintf(stderr,"%s", options_msg);		
 }
 
 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]){
 			// Option '-c' for compressor mode
 			case 'c':
 				if(param.mode!=0){
-					printf("It's not possible to code and decode");
+					fprintf(stderr,"It's not possible to code and decode");
 					return 0;
 				}
 				param.mode = 1;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]){
 			// Option '-d' for decompressor mode
 			case 'd':
 				if(param.mode!=0){
-					printf("It's not possible to code and decode");
+					fprintf(stderr,"It's not possible to code and decode");
 					return 0;
 				}
 				param.mode = 2;
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]){
 	//file di input necessario
 	//il file è sempre accompagnato dall'estensione per cui è sempre di almeno 5 caratteri
 	if(!param.i_set){	
-		printf("needed input file\n");
+		fprintf(stderr,"needed input file\n");
 		return 0;
 	}
 	
@@ -162,14 +162,14 @@ int main(int argc, char* argv[]){
 		param.dict_size = (int)UINT16_MAX;
 	} else {
 		if(param.dict_size <= MIN_DIM_DICT){						//non penso possa capitare un numero upperbound????
-			printf("Out of bound value for dictionary\n");
+			fprintf(stderr,"Out of bound value for dictionary\n");
 			return 0;
 		}
 	}
 	
 	//controllo del modo di funzionamento
 	if(param.mode==0){
-		printf("Must be selected one functioning mode\n");
+		fprintf(stderr,"Must be selected one functioning mode\n");
 		return 0;
 	}
 	
@@ -177,26 +177,26 @@ int main(int argc, char* argv[]){
 	
 /*--------confirmation--------------------------------------------------------*/	
 	
-	printf("Input file: %s\n", param.input_file);
+	fprintf(stderr,"Input file: %s\n", param.input_file);
 	if(param.mode==1){
-		printf("Output file: %s\n", param.output_file);
-		printf("Dictionary size: %i\n", param.dict_size);
+		fprintf(stderr,"Output file: %s\n", param.output_file);
+		fprintf(stderr,"Dictionary size: %i\n", param.dict_size);
 	}
-	printf("correct: y/n?\n");
+	fprintf(stderr,"correct: y/n?\n");
 	ret = scanf("%c", &response);
 	switch(response){
 		case 'y':
 		case 'Y':
 			if(param.mode==1){	//compressore
-				printf("Start encoding\n");
+				fprintf(stderr,"Start encoding\n");
 			} else {
-				printf("Start decoding\n");
+				fprintf(stderr,"Start decoding\n");
 			}
 			break;
 		case 'n':
 		case 'N':
 		default:
-			printf("Abort\n");
+			fprintf(stderr,"Abort\n");
 			return 0;
 	}
 	
@@ -210,9 +210,9 @@ int main(int argc, char* argv[]){
 		return 0;
 	}
 	if(param.mode==1){	//compressore
-		printf("Encoding done\n");
+		fprintf(stderr,"Encoding done\n");
 	} else {
-		printf("Decoding done\n");
+		fprintf(stderr,"Decoding done\n");
 	}
 	//se cerchi il codice di test della hash table te l'ho spostato in testhashtable.c
 	return 0;

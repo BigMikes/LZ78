@@ -33,25 +33,25 @@ void loadBar(int x, int n, int r, int w)
 	c = ratio * w;
 	 
 	// Show the percentage complete.
-	printf("%3d%% [", (int)(ratio*100) );
+	fprintf(stderr,"%3d%% [", (int)(ratio*100) );
 	
 	// Show the load bar.
 	for (i=0; i<c; i++)
-		printf("=");
+		fprintf(stderr,"=");
 	 
 	for (j=c; j<w; j++)
-		printf(" ");
+		fprintf(stderr," ");
 	 
 	// ANSI Control codes to go back to the
 	// previous line and clear it.
-	printf("]\n\033[F\033[J");
+	fprintf(stderr,"]\n\033[F\033[J");
 }
 
 
 int main(){
 	int i = 0;
 	char output[10];
-	printf("test charging bar: \n");
+	fprintf(stderr,"test charging bar: \n");
 	
 	do{
 		loadBar(i, 40, 40, 40);

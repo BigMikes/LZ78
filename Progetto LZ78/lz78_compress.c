@@ -6,7 +6,7 @@
 
 //This function return the first position in the buffer in which is possible to write
 unsigned char* add_and_shift(unsigned char* ptr_w, const void* src, size_t size_src){
-//printf("Size to put into dictionary: %d\n",(int) size_src); DEBUG PRINT
+//fprintf(stderr,"Size to put into dictionary: %d\n",(int) size_src); DEBUG PRINT
 memcpy(ptr_w,src,size_src);
 ptr_w+=size_src;
 return ptr_w;
@@ -51,7 +51,7 @@ int add_digest(char* output_file, int verbose){
 	
 	output_sha = fopen(output_file, "a+");
 	if(output_sha==NULL){
-		printf("Impossible to reopen output file.\n");
+		fprintf(stderr,"Impossible to reopen output file.\n");
 		return -1;
 	}
 	
@@ -109,17 +109,17 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	
 	input = fopen(input_file, "r");
 	if(input==NULL){
-		printf("Impossible to open input file. You are sure that exists?\n");
+		fprintf(stderr,"Impossible to open input file. You are sure that exists?\n");
 		return -1;
 	}
 	output = bitio_open(output_file, 'w');
 	if(output==NULL){
-		printf("Error with output file\n");
+		fprintf(stderr,"Error with output file\n");
 		return -1;
 	}
 	hashtable = create_hash_table(dictionary_size);
 	if(hashtable == NULL){
-		printf("ERROR IN HASH TABLE GENERATION\n");
+		fprintf(stderr,"Error in table generation\n");
 		return -1;
 	}
 
@@ -138,7 +138,7 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	
 	//Before to compress, add the header
 	if(add_header(dictionary_size, input_file,output_file, get_fd(output), &st)<0){
-		printf("ERROR DURING WRITING HEADER FILE\n");
+		fprintf(stderr,"ERROR DURING WRITING HEADER FILE\n");
 		return -1;
 	}
 	
@@ -173,13 +173,13 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 				break;
 			case -1:
 				//ritorna errore hashtable non consistente
-				printf("Tabella non consistente\n");
+				fprintf(stderr,"Table not consistent\n");
 				return -1;
 				break;
 		}
 		//checks if some error occurs during the emitting of the encoding
 		if(error == -1){
-			printf("Error in writing of the encoding\n");
+			fprintf(stderr,"Error in writing of the encoding\n");
 			return -1;
 		}
 		

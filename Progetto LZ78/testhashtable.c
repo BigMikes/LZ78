@@ -4,7 +4,7 @@ int main(int argc, char* argv[]){
 	hashtable_t* hashtable;
 	hashtable = create_hash_table(300);
 	if(hashtable == NULL){
-		printf("ERROR IN HASH TABLE GENERATION\n");
+		fprintf(stderr,"ERROR IN HASH TABLE GENERATION\n");
 		return 0;
 	}
 	int i;
@@ -12,13 +12,13 @@ int main(int argc, char* argv[]){
 	int node_id_2 = -1;
 	node_id_1 = insert(hashtable, 'a', 0);
 	node_id_2 = insert(hashtable, 'a', 0);
-	printf("Collision: node_id_1 = %i, node_id_2 = %i\n", node_id_1, node_id_2);
+	printf(stderr, "Collision: node_id_1 = %i, node_id_2 = %i\n", node_id_1, node_id_2);
 	insert(hashtable, 'b', 0);
 	insert(hashtable, 'c', 0);
 	insert(hashtable, 'd', 0);
 	//Collisions testing
 	for(i = 0; i < 100; i++){
-		printf("Num of entries = %i\n", get_num_records(hashtable));
+		printf(stderr, "Num of entries = %i\n", get_num_records(hashtable));
 		insert(hashtable, (char) i, i);
 	}
 	

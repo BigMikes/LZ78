@@ -66,6 +66,7 @@ void retrieve_string(int verbose_mode, struct node* tree, int node_id, char* par
 	//memset(partial_string, 0, *size_array * sizeof(char));
 	
 	printv(verbose_mode, "Risalgo l'albero dal nodo %i\n", node_id);
+	
 	while(1){
 		//Il primo layer composto da tutti i caratteri ascii è scalato di 1 rispetto all'identificatore del nodo
 		if(previous_id <= 255)
@@ -141,7 +142,7 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 		return -1;		
 	}
 	
-	/*DEBUG*/ printf("%s\n", header);
+	/*DEBUG*/ fprintf(stderr,"%s\n", header);
 	
 	//Reads all the header 
 	error = read(input_fd, header, dim_header);
@@ -152,11 +153,11 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	
 	/*---Ask to the user if he/she wants to continue---*/
 	memcpy(orig_file_dim, header + (dim_header - sizeof(int)), sizeof(int)); 
-	printf("Do you want decompress %i bytes (yes/no): ", *orig_file_dim); 
+	fprintf(stderr,"Do you want decompress %i bytes (yes/no): ", *orig_file_dim); 
 	error = scanf("%c", &response);			//Temporanea, serve per rimuovere dal buffer di input il '\n' inserito dall'utente nel main
 	error = scanf("%c", &response);
 	if(response == 'n' || error == EOF){
-		printf("\nOk, I'm terminating\n");
+		fprintf(stderr,"\nOk, I'm terminating\n");
 		free(header);
 		return -1;
 	}
@@ -172,13 +173,13 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	memcpy(*output_file, header, name_len);
 	temp += name_len;	
 	
-	printf("File name = %s\n", *output_file);
+	fprintf(stderr,"File name = %s\n", *output_file);
 		
 	//Parse the dictionary size
 	memcpy(&dict_size, header + temp, sizeof(int));	
 	temp += sizeof(int);
 	
-	printf("Dict Size = %i\n", dict_size);
+	fprintf(stderr,"Dict Size = %i\n", dict_size);
 	
 	//Parse the last access time and last modification time
 	memcpy(&la_time, header + name_len + sizeof(int), sizeof(time_t));
@@ -217,7 +218,7 @@ int check_digest(char* input_file, int verbose){
 	//open file in reading only mode
 	input_sha = fopen(input_file, "r");
 	if(input_sha==NULL){
-		printf("Impossible to open input file.\n");
+		fprintf(stderr,"Impossible to open input file.\n");
 		return -1;
 	}
 	
@@ -267,10 +268,10 @@ int check_digest(char* input_file, int verbose){
 		printv(verbose, "\n");
 	}
 	if(CRYPTO_memcmp(hash_new, hash_old, digest_size) != 0){
-		printf("Corrupted file.\n\n");
+		fprintf(stderr,"Corrupted file.\n\n");
 		return -1;
 	}
-	printf("Untouched file.\n\n");
+	fprintf(stderr,"Untouched file.\n\n");
 	
 	fclose(input_sha);
 	
@@ -303,7 +304,7 @@ int decompressor(char* input_file, int verbose_mode){
 	//Open the compressed file
 	input = bitio_open(input_file, 'r');
 	if(input==NULL){
-		printf("Error with input file. You are sure that exists?\n");
+		fprintf(stderr,"Error with input file. You are sure that exists?\n");
 		return -1;
 	}
 	
@@ -318,7 +319,7 @@ int decompressor(char* input_file, int verbose_mode){
 	//Open the (decompressed) output file
 	output = fopen(output_file, "w");	
 	if(output == NULL){
-		printf("Impossible to open output file.\n");
+		fprintf(stderr,"Impossible to open output file.\n");
 		return -1;
 	}
 	

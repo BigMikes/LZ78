@@ -235,9 +235,9 @@ void print_ht(hashtable_t* ht){
 	for(i = 0; i < ht->size; i++){
 		entry = ht->table[i];
 		if(entry != NULL)
-			printf("Entry # = %i | Node id = %i | Symbol = %c | Father id = %i |\n", i, (int)entry->node_id, entry->symbol, (int)entry->father_id);
+			fprintf(stderr,"Entry # = %i | Node id = %i | Symbol = %c | Father id = %i |\n", i, (int)entry->node_id, entry->symbol, (int)entry->father_id);
 		else
-			printf("Entry # = %i | Empty\n", i);
+			fprintf(stderr,"Entry # = %i | Empty\n", i);
 	}	
 	return;
 }
