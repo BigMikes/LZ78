@@ -103,11 +103,12 @@ void init_tree(struct node* tree){
 
 
 void clear_tree(struct node* tree, int tree_max_size){
-	int i;
-	for(i = 256; i <= tree_max_size; i++){
+	//int i;
+	memset(tree + 256, 0, (tree_max_size - 256) * sizeof(struct node));
+	/*for(i = 256; i <= tree_max_size; i++){
 		tree[i].father_id = 0;
 		tree[i].symbol = 0;
-	} 
+	}*/
 	return;
 }
 
@@ -164,8 +165,10 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	
 	/*---Parse the content of the header---*/
 	
+	fprintf(stderr,"File name lenght = %i\n", name_len);
+	
 	//Parse file name
-	*output_file = malloc(name_len);
+	*output_file = calloc(name_len + 1, sizeof(char));
 	if(*output_file == NULL){
 		free(header);
 		return -1;
@@ -326,7 +329,7 @@ int decompressor(char* input_file, int verbose_mode){
 	//Allocate the tree structure
 	tree_max_size += dictionary_size;
 	tree = (struct node*)calloc(tree_max_size, sizeof(struct node));
-	partial_string = (char*)malloc( tree_max_size * sizeof(char));
+	partial_string = (char*)calloc(tree_max_size,  sizeof(char));
 	//Initialization the firt layer of the tree
 	init_tree(tree);
 	old_node_id = -1;
@@ -350,9 +353,6 @@ int decompressor(char* input_file, int verbose_mode){
 			printv(verbose_mode, "Aggiorno Old Node = %i con symbol = %c, padre id = %i\n", old_node_id, tree[old_node_id].symbol, tree[old_node_id].father_id);
 		}
 		tree_size++;						//As in the compressor, increments first, then uses the id
-		//Add new entry to the tree
-		tree[tree_size].father_id = node_id;
-		old_node_id = tree_size;
 		
 		//Tree is full, reset it!
 		if(tree_size >= tree_max_size){
@@ -362,13 +362,18 @@ int decompressor(char* input_file, int verbose_mode){
 			bound = 256;
 			bit_len = 8;
 		}
+		else{
+			//Add new entry to the tree
+			tree[tree_size].father_id = node_id;
+			old_node_id = tree_size;
+		}
 	}
 	while(1);
 	
 
-	fflush(output);
+
 	fclose(output);
-	//bitio_close(input);
+	bitio_close(input);
 	
 	//Given the access time and modification time updates the metadata of the output file
 	utime(output_file, timestamps);

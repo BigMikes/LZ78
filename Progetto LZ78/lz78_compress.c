@@ -6,10 +6,10 @@
 
 //This function return the first position in the buffer in which is possible to write
 unsigned char* add_and_shift(unsigned char* ptr_w, const void* src, size_t size_src){
-//fprintf(stderr,"Size to put into dictionary: %d\n",(int) size_src); DEBUG PRINT
-memcpy(ptr_w,src,size_src);
-ptr_w+=size_src;
-return ptr_w;
+	//fprintf(stderr,"Size to put into dictionary: %d\n",(int) size_src); DEBUG PRINT
+	memcpy(ptr_w,src,size_src);
+	ptr_w+=size_src;
+	return ptr_w;
 }
 
 //Fuction to add the header to compressed file. It asks these parameteres: dictionary size, input and output files, file descriptor of output file and metadata

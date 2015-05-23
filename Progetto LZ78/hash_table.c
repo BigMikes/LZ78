@@ -243,10 +243,9 @@ void print_ht(hashtable_t* ht){
 * Delete hash table entirely and its data structures
 */
 void free_ht(hashtable_t* ht){
-	
 	if(ht == NULL)
 		return;
-	
+	free(ht->table);
 	free(ht);
 	
 }

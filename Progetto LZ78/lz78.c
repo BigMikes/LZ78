@@ -147,14 +147,15 @@ int main(int argc, char* argv[]){
 	//file di input necessario
 	//il file è sempre accompagnato dall'estensione per cui è sempre di almeno 5 caratteri
 	if(!param.i_set){	
-		fprintf(stderr,"needed input file\n");
+		fprintf(stderr,"Needed input file\n");
 		return 0;
 	}
 	
 	//se il file di output non viene fornito di default è output.txt
 	if(!param.o_set){
 		param.output_file = (char*)malloc(sizeof("output.txt")+1);
-		param.output_file = "output.txt";
+		//param.output_file = "output.txt";
+		strcpy(param.output_file, "output.txt\0");
 	}
 	
 	//controllo sulla dimensione
@@ -197,7 +198,7 @@ int main(int argc, char* argv[]){
 		case 'N':
 		default:
 			fprintf(stderr,"Abort\n");
-			return 0;
+			goto cleanup;
 	}
 	
 /*---------functioning--------------------------------------------------------*/
@@ -214,6 +215,13 @@ int main(int argc, char* argv[]){
 	} else {
 		fprintf(stderr,"Decoding done\n");
 	}
-	//se cerchi il codice di test della hash table te l'ho spostato in testhashtable.c
+	
+/*---------Cleanup-------------------------------------------------------------*/
+cleanup:
+	if(param.input_file != NULL)
+		free(param.input_file);
+	if(param.output_file != NULL)
+		free(param.output_file);	
+	
 	return 0;
 }
