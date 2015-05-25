@@ -17,20 +17,22 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) $(LFLAGS) -o $(TARGET)
 
-bitio.o: bitio.h bitio.c
-	$(CC) $(CFLAGS) -c bitio.c
-	
-hash_table.o: hash_table.c hash_table.h
-	$(CC) $(CFLAGS) -c hash_table.c 
+# Dependencies:
 
-lz78_decompress.o: lz78_decompress.c bitio.h lz78.h
-	$(CC) $(CFLAGS) -c lz78_decompress.c
-	
-lz78_compress.o: lz78_compress.c bitio.h lz78.h hash_table.h
-	$(CC) $(CFLAGS) -c lz78_compress.c
+bitio.o: bitio.h
 
-lz78.o: lz78.c lz78.h lz78_decompress.c lz78_compress.c
-	$(CC) $(CFLAGS) -c lz78.c
+hash_table.o: hash_table.h 
+
+lz78_decompress.o: bitio.h lz78.h
+
+lz78_compress.o: bitio.h lz78.h hash_table.h
+
+lz78.o: lz78.h 
+
+# This is a predefined rule of makefile, it knows the dependencies and thus can compile the related ".c" files in to ".o"
+# The macro $< means "the first suffix of current target", i.e. ".c"
+.c.o:
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	rm *.o
