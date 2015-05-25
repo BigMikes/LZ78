@@ -7,7 +7,7 @@
 #include <openssl/evp.h>
 
 /*---------CONSTANT-----------------*/
-#define MIN_DIM_DICT 10
+#define MIN_DIM_DICT 1
 
 /*---------SHARED RESOURCE----------*/ 
 void printv(int verbosity, const char *format, ...);
