@@ -60,6 +60,7 @@ int bitio_flush(struct bitio* b){//If the mode isn't write mode, error.
 	int len_bytes;
 	int left;
 	char* dst=NULL;
+	int i;
 	
 	if(b == NULL || b->bitio_mode != 'w' || b->bitio_fd < 0){
 		errno = EINVAL;
@@ -96,8 +97,6 @@ int bitio_flush(struct bitio* b){//If the mode isn't write mode, error.
 
 	//error handler
 fail:
-	int i;
-	
 	dst = (char*)(b->buf);
 	for(i = 0; i < len_bytes - left; i++){			//in case of error, shift in any case the bytes that were flushed
 		dst[i] = start[i];

@@ -138,7 +138,7 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	/*------------programma---------------------------------------------------*/
 	//file size
 	stat(input_file, &st);
-	int size = st.st_size;
+	size = st.st_size;
 	
 	//Before to compress, add the header
 	if(add_header(dictionary_size, input_file,output_file, get_fd(output), &st)<0){
