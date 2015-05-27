@@ -51,6 +51,7 @@ void loadBar(int x, int n, int r, int w)
 int main(){
 	int i = 0;
 	char output[10];
+	
 	fprintf(stderr,"test charging bar: \n");
 	
 	do{

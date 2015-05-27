@@ -53,6 +53,7 @@ inline void loadBar(int verbose, int x, int n, int r, int w){
 //verbose print
 void printv(int verbosity, const char *format, ...){
     va_list args;
+    
     va_start(args, format);
 
     if (verbosity){

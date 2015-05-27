@@ -48,6 +48,7 @@ int add_digest(char* output_file, int verbose){
 	unsigned char hash[digest_size];
 	int read_bytes;
 	FILE* output_sha;
+	EVP_MD_CTX sha_ctx;
 	
 	output_sha = fopen(output_file, "a+");
 	if(output_sha==NULL){
@@ -55,7 +56,7 @@ int add_digest(char* output_file, int verbose){
 		return -1;
 	}
 	
-	EVP_MD_CTX sha_ctx;
+	
 	EVP_MD_CTX_init(&sha_ctx);
 	
 	EVP_DigestInit(&sha_ctx, EVP_sha256());
@@ -104,7 +105,18 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	FILE* input;
 	struct bitio* output;
 	hashtable_t* hashtable;
-		
+	
+	int readed_byte = 0;
+	int node_id, find;
+	int father_id = 0;
+	int start = 1;
+	int error = 0;
+	
+	//for the load bar
+	struct stat st;
+	int size;
+	int total_read_char = 0;
+	
 	/*------------controlli---------------------------------------------------*/
 	
 	input = fopen(input_file, "r");
@@ -124,17 +136,9 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	}
 
 	/*------------programma---------------------------------------------------*/
-	int readed_byte = 0;
-	int node_id, find;
-	int father_id = 0;
-	int start = 1;
-	int error = 0;
-	
-	//for the load bar
-	struct stat st;
+	//file size
 	stat(input_file, &st);
 	int size = st.st_size;
-	int total_read_char = 0;
 	
 	//Before to compress, add the header
 	if(add_header(dictionary_size, input_file,output_file, get_fd(output), &st)<0){

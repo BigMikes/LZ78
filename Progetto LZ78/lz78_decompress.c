@@ -28,6 +28,7 @@ int read_node(int verbose_mode, struct bitio* fd, int tree_dim, int* bit_len, in
 	uint64_t node_id;
 	int how_many; 
 	int ret;
+	
 	if(fd == NULL || tree_dim < 0){
 		return -1;
 	}
@@ -50,6 +51,7 @@ int read_node(int verbose_mode, struct bitio* fd, int tree_dim, int* bit_len, in
 char reconstruct_string(struct node* tree, int previous_id){
 	int node_id = previous_id;
 	char ret = 0;
+	
 	while(node_id != 0){
 		ret = (char)(tree[node_id].symbol - 1);			//-1 perchè il carattere che cerchiamo è del primo layer, e questi sono scalati di 1
 		node_id = tree[node_id].father_id;
@@ -63,6 +65,7 @@ void retrieve_string(int verbose_mode, struct node* tree, int node_id, char* par
 	int previous_id = node_id;
 	
 	//reset strings
+	//it's useless since we know how much data are in the buffer
 	//memset(partial_string, 0, *size_array * sizeof(char));
 	
 	printv(verbose_mode, "Risalgo l'albero dal nodo %i\n", node_id);
@@ -93,6 +96,7 @@ void retrieve_string(int verbose_mode, struct node* tree, int node_id, char* par
 void init_tree(struct node* tree){
 	char ascii;
 	int i;
+	
 	for(i = 0; i <= 255; i++){
 		ascii = (char)i;
 		tree[i].father_id = 0;

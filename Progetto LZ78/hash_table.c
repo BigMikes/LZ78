@@ -25,6 +25,7 @@ struct hashtable_s{
 uint32_t hash(hashtable_t* ht, unsigned char* c, int dim){
 	uint32_t result = ht->hash_start_value;
 	int i;
+	
 	for(i = 0; i < dim; i++)
 		result = ((result << 5) + result) + c[i];		// h_i = |h_i-1 * 33 + c|
 	return result;
@@ -39,6 +40,7 @@ int fill_first_layer(hashtable_t* ht){
 	char ascii;
 	int i;
 	int ret;
+	
 	for(i = 0; i <= 255; i++){
 		ascii = (char)i;
 		ret = insert(ht, ascii, 0);
