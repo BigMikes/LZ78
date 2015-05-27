@@ -165,7 +165,7 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	
 	/*---Parse the content of the header---*/
 	
-	fprintf(stderr,"File name lenght = %i\n", name_len);
+	//fprintf(stderr,"File name lenght = %i\n", name_len);
 	
 	//Parse file name
 	*output_file = calloc(name_len + 1, sizeof(char));
@@ -182,7 +182,7 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	memcpy(&dict_size, header + temp, sizeof(int));	
 	temp += sizeof(int);
 	
-	fprintf(stderr,"Dict Size = %i\n", dict_size);
+	//fprintf(stderr,"Dict Size = %i\n", dict_size);
 	
 	//Parse the last access time and last modification time
 	memcpy(&la_time, header + name_len + sizeof(int), sizeof(time_t));
