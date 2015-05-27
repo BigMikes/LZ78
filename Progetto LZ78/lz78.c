@@ -12,6 +12,7 @@ struct parameters{
 	int i_set;
 	int o_set;
 	int s_set;
+	int terminal; //if set the scanf are omitted
 };
 
 
@@ -63,13 +64,14 @@ void printv(int verbosity, const char *format, ...){
 //Display a help message
 void help(){
 	char* options_msg = "Usage: lz78 \n\
-		-c ....................: compressor mode\n\
-		-d ....................: decompressor mode\n\
+		-c ......................: compressor mode\n\
+		-d ......................: decompressor mode\n\
 		-i \"<filename>\"........: input file name\n\
 		-o \"<filename>\"........: output file name\n\
-		-v ....................: verbose\n\
+		-v ......................: verbose\n\
 		-s \"<size>\"............: dictionary size \n\
-		-h ....................: this helper\n";
+		-h ......................: this helper\n\
+		-t ......................: terminal mode (no user validation)\n";
         
 	fprintf(stderr,"%s", options_msg);		
 }
@@ -93,13 +95,14 @@ int main(int argc, char* argv[]){
 	param.i_set = 0;
 	param.o_set = 0;
 	param.s_set = 0;
+	param.terminal = 0;
 
 /*--------------Options Handle----------------------------------------*/
 	if(argc==1){
 		help();
 		return 0;
 	}
-	while((opt = getopt(argc, argv, "cdi:o:s:vh")) != -1){
+	while((opt = getopt(argc, argv, "cdi:o:s:vht")) != -1){
 		switch(opt){
 			// Option '-c' for compressor mode
 			case 'c':
@@ -135,6 +138,10 @@ int main(int argc, char* argv[]){
 			// Option -v for verbose mode
 			case 'v':
 				param.verbose = 1;
+				break;
+			// Option -t for terminal mode without user prompt
+			case 't':
+				param.terminal = 1;
 				break;
 			case 'h':
 			default:
@@ -183,29 +190,30 @@ int main(int argc, char* argv[]){
 		fprintf(stderr,"Output file: %s\n", param.output_file);
 		fprintf(stderr,"Dictionary size: %i\n", param.dict_size);
 	}
-	fprintf(stderr,"correct: y/n?\n");
-	ret = scanf("%c", &response);
-	switch(response){
-		case 'y':
-		case 'Y':
-			if(param.mode==1){	//compressore
-				fprintf(stderr,"Start encoding\n");
-			} else {
-				fprintf(stderr,"Start decoding\n");
-			}
-			break;
-		case 'n':
-		case 'N':
-		default:
-			fprintf(stderr,"Abort\n");
-			goto cleanup;
+	if(param.terminal == 0){
+		fprintf(stderr,"correct: y/n?\n");
+		ret = scanf("%c", &response);
+		switch(response){
+			case 'y':
+			case 'Y':
+				if(param.mode==1){	//compressore
+					fprintf(stderr,"Start encoding\n");
+				} else {
+					fprintf(stderr,"Start decoding\n");
+				}
+				break;
+			case 'n':
+			case 'N':
+			default:
+				fprintf(stderr,"Abort\n");
+				goto cleanup;
+		}
 	}
-	
 /*---------functioning--------------------------------------------------------*/
 	if(param.mode==1)
 		ret = compressor(param.input_file, param.output_file, param.dict_size, param.verbose);
 	else
-		ret = decompressor(param.input_file, param.verbose);
+		ret = decompressor(param.input_file, param.verbose, param.terminal);
 	
 	if(ret<0){
 		return 0;

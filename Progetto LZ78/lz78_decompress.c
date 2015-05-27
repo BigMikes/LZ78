@@ -118,7 +118,7 @@ void clear_tree(struct node* tree, int tree_max_size){
 * Returns -1 if some error occurs, or if the user decides to not decompress the file.
 * Otherwise returns the dimention of the dictoriary
 */
-int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, struct utimbuf* timestamps){
+int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, struct utimbuf* timestamps, int terminal_mode){
 	unsigned char* header;
 	int dim_header;
 	int name_len;
@@ -153,14 +153,16 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	}
 	
 	/*---Ask to the user if he/she wants to continue---*/
-	memcpy(orig_file_dim, header + (dim_header - sizeof(int)), sizeof(int)); 
-	fprintf(stderr,"Do you want decompress %i bytes (yes/no): ", *orig_file_dim); 
-	error = scanf("%c", &response);			//Temporanea, serve per rimuovere dal buffer di input il '\n' inserito dall'utente nel main
-	error = scanf("%c", &response);
-	if(response == 'n' || error == EOF){
-		fprintf(stderr,"\nOk, I'm terminating\n");
-		free(header);
-		return -1;
+	memcpy(orig_file_dim, header + (dim_header - sizeof(int)), sizeof(int));
+	if(terminal_mode == 0){ 
+		fprintf(stderr,"Do you want decompress %i bytes (yes/no): ", *orig_file_dim); 
+		error = scanf("%c", &response);			//Temporanea, serve per rimuovere dal buffer di input il '\n' inserito dall'utente nel main
+		error = scanf("%c", &response);
+		if(response == 'n' || error == EOF){
+			fprintf(stderr,"\nOk, I'm terminating\n");
+			free(header);
+			return -1;
+		}
 	}
 	
 	/*---Parse the content of the header---*/
@@ -281,7 +283,7 @@ int check_digest(char* input_file, int verbose){
 	return 0;
 }
 
-int decompressor(char* input_file, int verbose_mode){
+int decompressor(char* input_file, int verbose_mode, int terminal_mode){
 	struct bitio* input;
 	char* output_file;
 	FILE* output;
@@ -313,7 +315,7 @@ int decompressor(char* input_file, int verbose_mode){
 	
 	//Collect information from the header
 	timestamps = malloc(sizeof(struct utimbuf));
-	dictionary_size = get_info_from_header(get_fd(input), &output_file, &orig_file_size, timestamps);
+	dictionary_size = get_info_from_header(get_fd(input), &output_file, &orig_file_size, timestamps, terminal_mode);
 	if(dictionary_size == -1){
 		bitio_close(input);
 		return -1;

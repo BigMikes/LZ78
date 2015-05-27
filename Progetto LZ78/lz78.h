@@ -20,4 +20,4 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 
 
 /*---------Decompress functions------*/
-int decompressor(char* input_file, int verbose_mode);
+int decompressor(char* input_file, int verbose_mode, int terminal_mode);
