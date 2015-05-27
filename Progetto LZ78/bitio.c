@@ -2,8 +2,9 @@
 #define BITIO_BUF_WORDS 512
 
 /*
-The bitio structure works, with its functions, if and only if the machine has a little endian system and the architecture is 64 bits. 
-The bits will be interpreted according to this endianess system.
+Some claims:
+The bitio structure writes in little endian notation.
+The bitio structure reads from file assuming that the datas are written in little endian notation.
 */
 
 
