@@ -1,5 +1,7 @@
 #include "lz78.h"
 
+#define DIM_BUF 512
+
 struct node{
 	int father_id;
 	char symbol;
@@ -122,8 +124,8 @@ void clear_tree(struct node* tree, int tree_max_size){
 * Returns -1 if some error occurs, or if the user decides to not decompress the file.
 * Otherwise returns the dimention of the dictoriary
 */
-int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, struct utimbuf* timestamps, int terminal_mode){
-	unsigned char* header;
+int get_info_from_header(struct bitio* input_fd, char** output_file, int* orig_file_dim, struct utimbuf* timestamps, int terminal_mode){
+	unsigned char header[DIM_BUF];
 	int dim_header;
 	int name_len;
 	int error;
@@ -134,27 +136,26 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	int temp = 0;
 	
 	//Reads the file name dimention (it will be the only variable field)
-	error = read(input_fd, &name_len, sizeof(int));
+	error = read_bytes(input_fd, (unsigned char*)&name_len, sizeof(int));
 	if(error != sizeof(int))
 		return -1;
 	
+	/*DEBUG*/ 
+	//fprintf(stderr,"%i\n", name_len);
+	
 	//Computes the dimention of entire header (two integers for dict_size and original_file_size, and two time_t)
 	dim_header = name_len + 2 * sizeof(int) + 2 * sizeof(time_t);
+
 	
-	//Allocates the buffer for the header
-	header = malloc(dim_header);
-	if(header == NULL){
-		return -1;		
-	}
-	
-	/*DEBUG*/ fprintf(stderr,"%s\n", header);
 	
 	//Reads all the header 
-	error = read(input_fd, header, dim_header);
+	error = read_bytes(input_fd, header, dim_header);
 	if(error != dim_header){
-		free(header);
 		return -1;
 	}
+	
+	/*DEBUG*/ 
+	//fprintf(stderr,"%s\n", header);
 	
 	/*---Ask to the user if he/she wants to continue---*/
 	memcpy(orig_file_dim, header + (dim_header - sizeof(int)), sizeof(int));
@@ -164,7 +165,6 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 		error = scanf("%c", &response);
 		if(response == 'n' || error == EOF){
 			fprintf(stderr,"\nOk, I'm terminating\n");
-			free(header);
 			return -1;
 		}
 	}
@@ -176,13 +176,13 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	//Parse file name
 	*output_file = calloc(name_len + 1, sizeof(char));
 	if(*output_file == NULL){
-		free(header);
+		
 		return -1;
 	}
 	memcpy(*output_file, header, name_len);
 	temp += name_len;	
 	
-	fprintf(stderr,"File name = %s\n", *output_file);
+	//fprintf(stderr,"File name = %s\n", *output_file);
 		
 	//Parse the dictionary size
 	memcpy(&dict_size, header + temp, sizeof(int));	
@@ -200,7 +200,7 @@ int get_info_from_header(int input_fd, char** output_file, int* orig_file_dim, s
 	timestamps->actime = la_time;
 	timestamps->modtime = lm_time;
 	
-	free(header);
+	
 	return dict_size;
 }
 
@@ -319,8 +319,9 @@ int decompressor(char* input_file, int verbose_mode, int terminal_mode){
 	
 	//Collect information from the header
 	timestamps = malloc(sizeof(struct utimbuf));
-	dictionary_size = get_info_from_header(get_fd(input), &output_file, &orig_file_size, timestamps, terminal_mode);
+	dictionary_size = get_info_from_header(input, &output_file, &orig_file_size, timestamps, terminal_mode);
 	if(dictionary_size == -1){
+		fprintf(stderr,"Error in reading of header\n");
 		bitio_close(input);
 		return -1;
 	}

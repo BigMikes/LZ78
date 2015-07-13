@@ -13,7 +13,7 @@ unsigned char* add_and_shift(unsigned char* ptr_w, const void* src, size_t size_
 }
 
 //Fuction to add the header to compressed file. It asks these parameteres: dictionary size, input and output files, file descriptor of output file and metadata
-int add_header(int dictionary_size, char* in_file, char* out_file, int fd, struct stat* meta_data){
+int add_header(int dictionary_size, char* in_file, char* out_file, struct bitio* fd, struct stat* meta_data){
 	int header_size;
 	int lenght_file_name=strlen(in_file);
 	unsigned char* ptr_w;
@@ -30,12 +30,12 @@ int add_header(int dictionary_size, char* in_file, char* out_file, int fd, struc
 
 	ptr_w=write_buff;
 	ptr_w=add_and_shift(ptr_w, &lenght_file_name, sizeof(lenght_file_name));        //1st field: I put the lenght of the file name. It's always an integer
-	ptr_w=add_and_shift(ptr_w, in_file, strlen(in_file));     //2nd field: filename. //Then is shifted depending on the real lenght of file name.
+	ptr_w=add_and_shift(ptr_w, in_file, strlen(in_file));     	//2nd field: filename. //Then is shifted depending on the real lenght of file name.
 	ptr_w=add_and_shift(ptr_w,&dictionary_size, sizeof(dictionary_size));	   //3rd field: dictionary size.
 	ptr_w=add_and_shift(ptr_w,&(meta_data->st_atime),sizeof(meta_data->st_atime)); //4th field: last access time.
 	ptr_w=add_and_shift(ptr_w,&(meta_data->st_mtime),sizeof(meta_data->st_mtime)); //5th field: last modfication time.
 	ptr_w=add_and_shift(ptr_w,&(meta_data->st_size),sizeof(meta_data->st_size));  //6th field: file size in byte.
-	write_ret = write(fd,write_buff,header_size);
+	write_ret = write_bytes(fd,write_buff,header_size);
 	
 	free(write_buff);
 	return  write_ret;
@@ -141,7 +141,7 @@ int compressor(char* input_file, char* output_file, int dictionary_size, int ver
 	size = st.st_size;
 	
 	//Before to compress, add the header
-	if(add_header(dictionary_size, input_file,output_file, get_fd(output), &st)<0){
+	if(add_header(dictionary_size, input_file,output_file, output, &st)<0){
 		fprintf(stderr,"ERROR DURING WRITING HEADER FILE\n");
 		return -1;
 	}

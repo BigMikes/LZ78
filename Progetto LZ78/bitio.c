@@ -17,10 +17,10 @@ struct bitio{
 };
 
 /*------Return file descriptor------*/
-int get_fd(struct bitio* bitio){
-	if(bitio == NULL)
+int get_fd(struct bitio* descriptor){
+	if(descriptor == NULL)
 		return -1;
-	return bitio->bitio_fd;
+	return descriptor->bitio_fd;
 }
 
 /*------OPEN-----*/
@@ -319,4 +319,40 @@ fail:
 	close(b->bitio_fd);
 	free(b);
 	return -1;
+}
+
+/*
+* Write a buffer of bytes using the bitio_write_chunk
+* returns the number of bytes or -1 if an error occurs
+*/
+int write_bytes(struct bitio* f, unsigned char* buf, int dim){
+	if(f == NULL || buf == NULL || dim < 0)
+		return -1;
+	int i;
+	int ret;
+	for(i = 0; i < dim; i++){
+		ret = bitio_write_chunk(f, (uint64_t)buf[i], 8);
+		if(ret != 8)
+			break;
+	}
+	
+	return i;
+}
+
+/*
+* Read a buffer of bytes using the bitio_read_chunk
+* returns the number of bytes or -1 if an error occurs
+*/
+int read_bytes(struct bitio* f, unsigned char* buf, int dim){
+	if(f == NULL || buf == NULL || dim < 0)
+		return -1;
+	int i;
+	int ret;
+	for(i = 0; i < dim; i++){
+		ret = bitio_read_chunk(f, (uint64_t*)(buf + i), 8);
+		if(ret != 8)
+			break;
+	}
+	
+	return i;
 }

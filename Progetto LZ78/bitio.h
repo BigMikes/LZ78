@@ -18,5 +18,7 @@ int bitio_read(struct bitio* f);
 int bitio_flush(struct bitio* f);
 int bitio_close(struct bitio* f);
 int get_fd(struct bitio* bitio);
+int write_bytes(struct bitio* f, unsigned char* buf, int dim);
+int read_bytes(struct bitio* f, unsigned char* buf, int dim);
 
 #endif /*_BITIO_H_12345931_*/
