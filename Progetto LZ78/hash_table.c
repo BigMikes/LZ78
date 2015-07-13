@@ -67,7 +67,7 @@ hashtable_t* create_hash_table(int dict_size){
 		
 	//Gestire fattore di espansione, cioè fare una tabella maggiore rispetto al dizionario
 	size += dict_size;
-	
+	size *= 2;
 	ret->table = calloc(size, sizeof(entry_t));
 	if(ret->table == NULL){
 		free(ret);
